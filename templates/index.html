@@ -92,12 +92,12 @@ body {
   border-left: 1px solid var(--border);
   position: sticky; top: 64px;
   height: calc(100vh - 64px);
-  display: flex; flex-direction: column;
+  display: grid;
+  grid-template-rows: 1fr auto;
   overflow: hidden;
-  scrollbar-width: none;
 }
 .right-canvas-area {
-  flex: 1; min-height: 100px;
+  min-height: 0;
   display: flex; flex-direction: column;
   overflow: hidden;
 }
@@ -391,7 +391,6 @@ input[type=range]::-moz-range-thumb {
   padding: 14px 16px;
   border-top: 1px solid var(--border);
   background: var(--surface);
-  flex-shrink: 0;
 }
 .btn-generate {
   width: 100%;
@@ -463,8 +462,10 @@ input[type=range]::-moz-range-thumb {
   .app { grid-template-columns: 1fr; }
   .right {
     position: static; height: auto;
+    grid-template-rows: auto auto;
     border-left: none; border-top: 1px solid var(--border);
   }
+  .right-canvas-area { min-height: 0; }
   .canvas-wrap { height: 320px; }
   .settings-grid { grid-template-columns: 1fr 1fr; }
   .field.span2 { grid-column: span 2; }
