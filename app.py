@@ -91,6 +91,7 @@ def _run_generation(job_id, params, images, offsets):
         print_mode     = params['print_mode']
         panel_layout   = params['panel_layout']       # '4panel' | 'topback'
         back_switch_d  = params['back_switch_d']      # topback mode: switch on back plate
+        back_wire_r    = params['back_wire_r']        # topback mode: wire hole on back plate
         back_cable_w   = params['back_cable_w']       # topback mode: cable slot on back plate
 
         topback = (panel_layout == 'topback')
@@ -124,7 +125,8 @@ def _run_generation(job_id, params, images, offsets):
                 _set(job_id, '🔧 Building back service plate…', 36)
                 back_stl = generate_back_panel(
                     panel_w_mm=panel_w, panel_h_mm=panel_h, max_thick=max_thick,
-                    switch_hole_d=back_switch_d, cable_slot_w=back_cable_w,
+                    switch_hole_d=back_switch_d, wire_hole_r=back_wire_r,
+                    cable_slot_w=back_cable_w,
                 )
                 zf.writestr('back_plate.stl', back_stl)
             else:
@@ -181,7 +183,10 @@ def _run_generation(job_id, params, images, offsets):
                     "  6. Drop panel_top.stl flat into the open frame opening from above\n"
                     "  7. Insert LED inside the tray through the base"
                 )
-                back_info = f"  Back plate: solid opaque — switch hole {back_switch_d:.0f}mm, cable slot {back_cable_w:.0f}mm wide"
+                back_info = (
+                    f"  Back plate: solid opaque — switch hole {back_switch_d:.0f}mm, "
+                    f"wire hole r={back_wire_r:.0f}mm, cable slot {back_cable_w:.0f}mm wide"
+                )
             else:
                 files_section = (
                     "  base.stl        — Print 1x\n"
@@ -316,6 +321,7 @@ def generate():
         print_mode     = request.form.get('print_mode', 'standard')
         panel_layout   = request.form.get('panel_layout', '4panel')
         back_switch_d  = float(request.form.get('back_switch_d', 0))
+        back_wire_r    = float(request.form.get('back_wire_r', 0))
         back_cable_w   = float(request.form.get('back_cable_w', 0))
         border_mm      = float(request.form.get('border_mm', 2.0)) if print_mode == 'framed' else 0.0
         support_tabs   = (print_mode == 'tabs')
@@ -332,6 +338,7 @@ def generate():
         hole_rect_h   = max(0, min(10, hole_rect_h))
         switch_hole_d  = max(0, min(25, switch_hole_d))
         back_switch_d  = max(0, min(25, back_switch_d))
+        back_wire_r    = max(0, min(15, back_wire_r))
         back_cable_w   = max(0, min(60, back_cable_w))
         border_mm     = max(1.0, min(5.0, border_mm)) if print_mode == 'framed' else 0.0
         if max_thick <= min_thick:
@@ -367,7 +374,7 @@ def generate():
             switch_hole_d=switch_hole_d, border_mm=border_mm,
             support_tabs=support_tabs, print_mode=print_mode,
             panel_layout=panel_layout, back_switch_d=back_switch_d,
-            back_cable_w=back_cable_w,
+            back_wire_r=back_wire_r, back_cable_w=back_cable_w,
         )
 
         job_id = uuid.uuid4().hex

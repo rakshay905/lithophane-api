@@ -335,11 +335,13 @@ def generate_open_top_frame(panel_w_mm, panel_h_mm, col_w=12.0, wall_h=8.0,
 
 
 def generate_back_panel(panel_w_mm, panel_h_mm, max_thick=3.0,
-                        switch_hole_d=0.0, cable_slot_w=0.0, cable_slot_h=10.0):
+                        switch_hole_d=0.0, wire_hole_r=0.0,
+                        cable_slot_w=0.0, cable_slot_h=10.0):
     """
     Solid opaque back service panel — same dimensions as the lithophane panels so it
     slots into the same column grooves.  Holes are optional:
       switch_hole_d  > 0  → circular push-button hole centred at 2/3 height
+      wire_hole_r    > 0  → circular cable hole at 1/4 height, centred (LED wire)
       cable_slot_w   > 0  → rectangular U-slot cut into the bottom edge for cable routing
     """
     import manifold3d as mf
@@ -350,6 +352,12 @@ def generate_back_panel(panel_w_mm, panel_h_mm, max_thick=3.0,
         r = max(3.0, switch_hole_d / 2)
         cyl = mf.Manifold.cylinder(max_thick + 2, r, circular_segments=64)
         cyl = cyl.translate([panel_w_mm / 2, panel_h_mm * 2 / 3, -1])
+        panel = panel - cyl
+
+    if wire_hole_r > 0:
+        r = max(2.0, wire_hole_r)
+        cyl = mf.Manifold.cylinder(max_thick + 2, r, circular_segments=40)
+        cyl = cyl.translate([panel_w_mm / 2, panel_h_mm / 4, -1])
         panel = panel - cyl
 
     if cable_slot_w > 0:

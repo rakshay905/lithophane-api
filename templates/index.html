@@ -818,6 +818,16 @@ input[type=range]::-moz-range-thumb {
         <div class="settings-grid">
           <div class="field">
             <label style="display:flex;align-items:center;gap:8px">
+              <input type="checkbox" id="chk-back-wire" onchange="toggleBackWire()" style="width:14px;height:14px;accent-color:var(--accent3)">
+              Wire Hole (back plate)
+            </label>
+            <div id="back-wire-inputs" style="display:none;margin-top:8px">
+              <input type="number" name="back_wire_r" id="back_wire_r" value="4" min="2" max="15" step="0.5">
+              <span class="field-unit">Radius mm · centred, 1/4 up · default 4mm fits USB cable</span>
+            </div>
+          </div>
+          <div class="field">
+            <label style="display:flex;align-items:center;gap:8px">
               <input type="checkbox" id="chk-back-switch" onchange="toggleBackSwitch()" style="width:14px;height:14px;accent-color:var(--accent)">
               Switch Hole (back plate)
             </label>
@@ -826,19 +836,19 @@ input[type=range]::-moz-range-thumb {
               <span class="field-unit">Diameter mm · 12=standard · 16=large · 22=panel-mount</span>
             </div>
           </div>
-          <div class="field">
+          <div class="field span2">
             <label style="display:flex;align-items:center;gap:8px">
               <input type="checkbox" id="chk-back-cable" onchange="toggleBackCable()" style="width:14px;height:14px;accent-color:var(--accent2)">
               Cable Slot (back plate bottom edge)
             </label>
             <div id="back-cable-inputs" style="display:none;margin-top:8px">
               <input type="number" name="back_cable_w" id="back_cable_w" value="20" min="8" max="60" step="1">
-              <span class="field-unit">Width mm · slot cut into bottom edge · default 20mm</span>
+              <span class="field-unit">Width mm · U-slot cut into bottom edge · default 20mm</span>
             </div>
           </div>
         </div>
         <div class="tip" style="margin-top:10px">
-          💡 The back plate is a solid opaque panel in place of a lithophane image. Add a <strong>switch hole</strong> (centred, 2/3 up) and/or a <strong>U-shaped cable slot</strong> in the bottom edge so the LED wire exits cleanly from the back.
+          💡 <strong>Wire hole</strong> — circular, centred, near the bottom of the back plate (LED cable passes through). <strong>Switch hole</strong> — centred, 2/3 up (push-button switch). <strong>Cable slot</strong> — U-shaped notch at the bottom edge. Mix and match as needed.
         </div>
       </div>
     </div>
@@ -1449,6 +1459,12 @@ function toggleSwitch() {
   const on = document.getElementById('chk-switch').checked;
   document.getElementById('switch-inputs').style.display = on ? 'block' : 'none';
   if (!on) document.getElementById('switch_hole_d').value = 0;
+}
+
+function toggleBackWire() {
+  const on = document.getElementById('chk-back-wire').checked;
+  document.getElementById('back-wire-inputs').style.display = on ? 'block' : 'none';
+  if (!on) document.getElementById('back_wire_r').value = 0;
 }
 
 function toggleBackSwitch() {
