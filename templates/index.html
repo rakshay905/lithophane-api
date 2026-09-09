@@ -95,6 +95,11 @@ body {
   display: flex; flex-direction: column;
   overflow: hidden;
 }
+.right-canvas-area {
+  flex: 1; min-height: 100px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
 
 /* ── Cards ── */
 .card {
@@ -385,6 +390,7 @@ input[type=range]::-moz-range-thumb {
   padding: 14px 16px;
   border-top: 1px solid var(--border);
   background: var(--surface);
+  flex-shrink: 0;
 }
 .btn-generate {
   width: 100%;
@@ -857,6 +863,7 @@ input[type=range]::-moz-range-thumb {
 
   <!-- ═══════════ RIGHT ═══════════ -->
   <div class="right">
+  <div class="right-canvas-area">
 
     <!-- 3D Canvas -->
     <div class="canvas-wrap" id="canvasWrap">
@@ -922,6 +929,8 @@ input[type=range]::-moz-range-thumb {
         <span class="ps-check" style="color:var(--text3)">🔧</span>
       </div>
     </div>
+
+  </div><!-- /right-canvas-area -->
 
     <!-- Generate -->
     <div class="gen-section">
@@ -1556,6 +1565,7 @@ async function doGenerate() {
   txt.className = 'progress-text';
   spin.style.display = 'block';
   msg.textContent = '';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   fill.style.width = '3%';
   stepEl.textContent = '📤 Uploading…';
   pctEl.textContent = '3%';
