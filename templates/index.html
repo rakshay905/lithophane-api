@@ -1639,7 +1639,14 @@ async function doGenerate() {
   }
 }
 
-// Init
+// Init — zero out any inputs whose controlling checkbox is unchecked on load
+// Without this, inputs with default values (e.g. hole_circ_r=4) are submitted
+// even when the user never enabled them.
+toggleHole();
+toggleSwitch();
+toggleBackWire();
+toggleBackSwitch();
+toggleBackCable();
 onSettingsChange();
 </script>
 </body>

@@ -82,14 +82,35 @@ def generate_lithophane_panel(image_bytes, width_mm, height_mm,
     # Normalize to [min_thick, max_thick]
     height_map = min_thick + (arr / 255.0) * (max_thick - min_thick)
 
-    # ── Border frame: force outer pixels to max_thick ──
+    # ── Border frame: tapered/chamfered on all 4 edges (45° self-supporting) ──
+    # Each border edge linearly ramps from 0 at the outer face to max_thick
+    # at the inner boundary.  For 45° self-support: border_mm >= max_thick.
+    # With typical defaults (border=2, max_thick=3) the slope is steeper than
+    # 45°, so it's always safe to print standing up without supports.
     if border_mm > 0:
         bpx = max(1, int(border_mm * resolution))
         bpy = max(1, int(border_mm * resolution))
-        height_map[:bpy, :]  = max_thick   # bottom strip
-        height_map[-bpy:, :] = max_thick   # top strip
-        height_map[:, :bpx]  = max_thick   # left strip
-        height_map[:, -bpx:] = max_thick   # right strip
+
+        r = np.arange(px_h, dtype=float)
+        c = np.arange(px_w, dtype=float)
+
+        # Normalised distance from each edge: 0 at the very edge, 1 at the
+        # inner boundary where the border meets the image area.
+        d_top    = np.clip((px_h - 1 - r) / bpy, 0, 1)[:, None]
+        d_bot    = np.clip(r / bpy,               0, 1)[:, None]
+        d_left   = np.clip(c / bpx,               0, 1)[None, :]
+        d_right  = np.clip((px_w - 1 - c) / bpx, 0, 1)[None, :]
+
+        # Minimum distance to any edge — 0 at corner/edge, 1 inside image
+        d_min = np.minimum(np.minimum(d_top, d_bot), np.minimum(d_left, d_right))
+
+        # Tapered border thickness: rises from 0 at outer edge to max_thick
+        border_h = max_thick * d_min
+
+        # Apply only in the border zone (d_min < 1); take max so image
+        # content thicker than the taper is preserved unchanged.
+        in_border = (d_min < 1.0)
+        height_map = np.where(in_border, np.maximum(height_map, border_h), height_map)
 
     dx = width_mm / px_w
     dy = height_mm / px_h
