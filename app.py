@@ -11,8 +11,33 @@ from lithophane_gen import (
 )
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 80 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024   # 20 MB (4 images max)
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+# ── Simple in-memory rate limiter ──
+# Render free tier: 1 worker, so this dict is shared across all requests.
+_rl_store = {}   # ip -> [timestamp, ...]
+_rl_lock  = threading.Lock()
+_RL_LIMIT  = 6      # max generates per window
+_RL_WINDOW = 900    # 15 minutes
+
+
+def _rate_ok(ip: str) -> bool:
+    now = time.time()
+    with _rl_lock:
+        times = [t for t in _rl_store.get(ip, []) if now - t < _RL_WINDOW]
+        if len(times) >= _RL_LIMIT:
+            return False
+        times.append(now)
+        _rl_store[ip] = times
+    return True
+
+
+def _client_ip() -> str:
+    forwarded = request.headers.get('X-Forwarded-For', '')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return request.remote_addr or 'unknown'
 
 PANEL_LABELS        = ['front', 'back', 'left', 'right']
 PANEL_LABELS_TOPBACK = ['front', 'top', 'left', 'right']  # 'top' replaces 'back'
@@ -253,9 +278,29 @@ def index():
     return resp
 
 
+_ALLOWED_IMG_MAGIC = {
+    b'\xff\xd8\xff',           # JPEG
+    b'\x89PNG',                # PNG
+    b'GIF8',                   # GIF
+    b'RIFF',                   # WEBP (starts with RIFF....WEBP)
+    b'BM',                     # BMP (2 bytes)
+}
+
+
+def _is_valid_image(data: bytes) -> bool:
+    for magic in _ALLOWED_IMG_MAGIC:
+        if data[:len(magic)] == magic:
+            return True
+    return False
+
+
 @app.route('/generate', methods=['POST'])
 def generate():
     try:
+        ip = _client_ip()
+        if not _rate_ok(ip):
+            return jsonify({'error': 'Too many requests — please wait a few minutes before generating again.'}), 429
+
         panel_w        = float(request.form.get('panel_w', 100))
         panel_h        = float(request.form.get('panel_h', 100))
         min_thick      = float(request.form.get('min_thick', 0.8))
@@ -301,7 +346,12 @@ def generate():
         for label in active_labels:
             f = request.files.get(f'img_{label}')
             if f and f.filename:
-                images[label] = f.read()
+                data = f.read()
+                if not _is_valid_image(data):
+                    return jsonify({'error': f'File for {label} panel is not a valid image (JPEG/PNG/GIF/WEBP/BMP).'}), 400
+                if len(data) > 10 * 1024 * 1024:
+                    return jsonify({'error': f'{label} image exceeds 10 MB limit.'}), 400
+                images[label] = data
             ox = float(request.form.get(f'ox_{label}', 0)) / 100.0
             oy = float(request.form.get(f'oy_{label}', 0)) / 100.0
             offsets[label] = (max(-1.0, min(1.0, ox)), max(-1.0, min(1.0, oy)))
