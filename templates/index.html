@@ -1011,7 +1011,6 @@ scene.add(led);
 let autoRotate = true;
 let box = new THREE.Group();
 scene.add(box);
-let _layoutMode = '4panel';   // '4panel' | 'topback'
 
 const texCache = { front: null, back: null, left: null, right: null, top: null };
 
@@ -1056,7 +1055,7 @@ function buildBox(pw, ph) {
   const bt  = 0.040;        // base/top plate thickness
   const wh  = 0.072;        // tray/cap wall height
   const eps = 0.001;
-  const topback = (_layoutMode === 'topback');
+  const topback = (document.getElementById('panel_layout')?.value === 'topback');
 
   const fm = frameMat();
 
@@ -1276,8 +1275,7 @@ window._three = {
     });
   },
 
-  setLayoutMode(mode) {
-    _layoutMode = mode;
+  setLayoutMode() {
     const pw = (parseFloat(document.getElementById('panel_w').value)||100)/100;
     const ph = (parseFloat(document.getElementById('panel_h').value)||100)/100;
     buildBox(pw, ph);
@@ -1330,7 +1328,7 @@ function setLayout(mode) {
   document.getElementById('lbl-top').style.display  = topback ? '' : 'none';
 
   // 3D preview
-  if (window._three) window._three.setLayoutMode(mode);
+  if (window._three) window._three.setLayoutMode();
 
   updateImgCount();
 }

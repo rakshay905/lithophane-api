@@ -266,6 +266,15 @@ def generate_base(panel_w_mm, panel_h_mm, col_w=12.0, base_thick=5.0,
         cyl = cyl.translate([box_w / 2, box_d / 2, -1])
         base = base - cyl
 
+        # Exit groove on the BOTTOM FACE: runs from hole centre to the front edge.
+        # Wire lays in this recess so the base sits flat on a shelf.
+        ch_w      = r * 2          # same width as hole diameter
+        groove_d  = 2.5            # 2.5 mm deep from bottom face
+        groove_l  = box_d / 2 + r + 1   # from front edge (-1) to just past hole centre
+        groove = mf.Manifold.cube([ch_w, groove_l, groove_d + 1])
+        groove = groove.translate([(box_w - ch_w) / 2, -1, -1])
+        base = base - groove
+
     # ── Rectangular slot through front wall (y=0 face) ──
     if hole_rect_w > 0 and hole_rect_h > 0:
         rw = min(hole_rect_w, box_w - col_w * 2 - 4)
