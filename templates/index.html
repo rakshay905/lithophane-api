@@ -461,6 +461,33 @@ input[type=range]::-moz-range-thumb {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ── Preview / Assembly tabs ── */
+.preview-tabs {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative; z-index: 5;
+}
+.prev-tab {
+  flex: 1; padding: 9px 12px;
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--text2); font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
+  cursor: pointer; transition: color 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+.prev-tab:hover { color: var(--text); }
+.prev-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Assembly hint overlay ── */
+.assembly-hint {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  background: rgba(8,8,16,0.75); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 11px; color: var(--text3);
+  pointer-events: none; white-space: nowrap; display: none;
+}
+
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; }
@@ -877,10 +904,17 @@ input[type=range]::-moz-range-thumb {
   <div class="right">
   <div class="right-canvas-area">
 
-    <!-- 3D Canvas -->
+    <!-- Tab bar -->
+  <div class="preview-tabs">
+    <button class="prev-tab active" id="tab-preview"  onclick="switchTab('preview')">3D Preview</button>
+    <button class="prev-tab"        id="tab-assembly" onclick="switchTab('assembly')">Assembly</button>
+  </div>
+
+  <!-- 3D Canvas -->
     <div class="canvas-wrap" id="canvasWrap">
       <canvas id="threeCanvas"></canvas>
-      <div class="canvas-hint">Drag to rotate · Scroll to zoom</div>
+      <div class="canvas-hint" id="previewHint">Drag to rotate · Scroll to zoom</div>
+      <div class="assembly-hint" id="assemblyHint">Schematic assembly — auto-plays &amp; loops</div>
       <div class="canvas-labels">
         <div class="canvas-label" style="background:rgba(255,107,107,0.15);color:#ff6b6b">
           <div class="dot" style="background:#ff6b6b"></div>Front
@@ -1032,6 +1066,13 @@ scene.add(led);
 let autoRotate = true;
 let box = new THREE.Group();
 scene.add(box);
+
+// ── Assembly animation state ──
+let assemblyMode   = false;
+let assemblyParts  = [];   // { object, assembledY, offsetY, startMs, durationMs, ease }
+let assemblyT0     = 0;
+const ANIM_ASSEMBLED_MS = 5400;  // last part done
+const ANIM_TOTAL_MS     = 7500;  // full loop (assembled + pause)
 
 const texCache = { front: null, back: null, left: null, right: null, top: null };
 
@@ -1214,11 +1255,130 @@ function buildBox(pw, ph) {
   led.position.y = -(ph * 0.32);
 }
 
+// ── Easing ──
+function easeOutBack(t) {
+  t = Math.min(t, 1);
+  const c1 = 1.70158, c3 = c1 + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+}
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - Math.min(t, 1), 3);
+}
+
+// ── Build schematic assembly scene ──
+function buildAssemblyScene() {
+  box.clear();
+  assemblyParts = [];
+  box.rotation.y = Math.PI * 0.25; // start at a nice angle
+
+  const pw = (parseFloat(document.getElementById('panel_w').value) || 100) / 100;
+  const ph = (parseFloat(document.getElementById('panel_h').value) || 100) / 100;
+  const topback = (document.getElementById('panel_layout')?.value === 'topback');
+
+  const pd = pw, cw = 0.10, pt = 0.025, bt = 0.040, wh = 0.072;
+  const EXPLODE = ph * 2.2;
+  const bw2 = pw + cw * 2, bd2 = pd + cw * 2;
+
+  const mk = (geo, mat) => { const m = new THREE.Mesh(geo, mat); return m; };
+  const fm = (c = 0x2a2a45) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.5, metalness: 0.3 });
+  const pm = () => new THREE.MeshStandardMaterial({
+    color: 0xf5eedd, roughness: 0.9, transparent: true, opacity: 0.85,
+    emissive: 0x100806, emissiveIntensity: 0.2,
+  });
+
+  function reg(obj, assembledY, offsetY, startMs, durationMs, ease) {
+    obj.position.y = assembledY + offsetY;
+    box.add(obj);
+    assemblyParts.push({ object: obj, assembledY, offsetY, startMs, durationMs, ease });
+  }
+
+  // ── Base tray ──
+  const baseG = new THREE.Group();
+  const baseFloor = mk(new THREE.BoxGeometry(bw2, bt, bd2), fm());
+  baseFloor.position.y = -(ph / 2 + wh + bt / 2);
+  baseG.add(baseFloor);
+  const bwy = -(ph / 2 + wh / 2);
+  [
+    [[bw2, wh, cw], [0,          bwy,  bd2/2-cw/2]],
+    [[bw2, wh, cw], [0,          bwy, -bd2/2+cw/2]],
+    [[cw,  wh, pd], [-bw2/2+cw/2, bwy, 0]],
+    [[cw,  wh, pd], [ bw2/2-cw/2, bwy, 0]],
+  ].forEach(([s, p]) => {
+    const m = mk(new THREE.BoxGeometry(...s), fm()); m.position.set(...p); baseG.add(m);
+  });
+  reg(baseG, 0, -EXPLODE, 300, 900, easeOutBack);
+
+  // ── 4 corner columns (tinted, stagger) ──
+  const colH = ph + wh * 2;
+  const colColors = [0x7b68ff, 0xff6fa3, 0x38d9a9, 0xffd060];
+  [
+    [ pw/2+cw/2,  pd/2+cw/2],
+    [-pw/2-cw/2,  pd/2+cw/2],
+    [ pw/2+cw/2, -pd/2-cw/2],
+    [-pw/2-cw/2, -pd/2-cw/2],
+  ].forEach(([cx, cz], i) => {
+    const col = mk(new THREE.BoxGeometry(cw, colH, cw),
+      new THREE.MeshStandardMaterial({ color: colColors[i], roughness: 0.4, metalness: 0.2,
+        emissive: colColors[i], emissiveIntensity: 0.18 }));
+    col.position.x = cx; col.position.z = cz;
+    reg(col, 0, EXPLODE, 1500 + i * 200, 650, easeOutBack);
+  });
+
+  // ── Side panels ──
+  const panelDefs = [
+    { pos: [0,           0,  pd/2+pt/2], w: pw, h: ph, d: pt },
+    { pos: [-(pw/2+pt/2), 0, 0],          w: pt, h: ph, d: pd },
+    { pos: [  pw/2+pt/2,  0, 0],          w: pt, h: ph, d: pd },
+  ];
+  if (!topback) {
+    panelDefs.push({ pos: [0, 0, -(pd/2+pt/2)], w: pw, h: ph, d: pt });
+  } else {
+    const tpy = ph/2 + wh - 0.016 - pt/2;
+    panelDefs.push({ pos: [0, tpy, 0], w: pw, h: pt, d: pd });
+  }
+  panelDefs.forEach(({ pos, w, h, d }, i) => {
+    const panel = mk(new THREE.BoxGeometry(w, h, d), pm());
+    panel.position.x = pos[0]; panel.position.z = pos[2];
+    reg(panel, pos[1], EXPLODE, 2750 + i * 280, 750, easeOutCubic);
+  });
+
+  // ── Top frame ──
+  const topG = new THREE.Group();
+  const twy = ph/2 + wh/2, tply = ph/2 + wh + bt/2;
+  const topPlate = mk(new THREE.BoxGeometry(bw2, bt, bd2), fm(0x3a3a60));
+  topPlate.position.y = tply; topG.add(topPlate);
+  [
+    [[bw2, wh, cw], [0,          twy,  bd2/2-cw/2]],
+    [[bw2, wh, cw], [0,          twy, -bd2/2+cw/2]],
+    [[cw,  wh, pd], [-bw2/2+cw/2, twy, 0]],
+    [[cw,  wh, pd], [ bw2/2-cw/2, twy, 0]],
+  ].forEach(([s, p]) => {
+    const m = mk(new THREE.BoxGeometry(...s), fm(0x3a3a60)); m.position.set(...p); topG.add(m);
+  });
+  reg(topG, 0, EXPLODE, 4500, 900, easeOutBack);
+}
+
 // ── Animate ──
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
-  if (autoRotate) box.rotation.y += 0.003;
+
+  if (assemblyMode) {
+    const cycleT = (performance.now() - assemblyT0) % ANIM_TOTAL_MS;
+    if (cycleT < ANIM_ASSEMBLED_MS) {
+      assemblyParts.forEach(p => {
+        const t = Math.max(0, (cycleT - p.startMs) / p.durationMs);
+        p.object.position.y = p.assembledY + p.offsetY * (1 - p.ease(t));
+      });
+    } else {
+      // Pause phase — all assembled, slow rotate
+      assemblyParts.forEach(p => { p.object.position.y = p.assembledY; });
+      box.rotation.y += 0.004;
+    }
+  } else {
+    if (autoRotate) box.rotation.y += 0.003;
+  }
+
   renderer.render(scene, camera);
 }
 animate();
@@ -1307,6 +1467,31 @@ window._three = {
     camera.position.set(d, d*0.65, d);
     controls.update();
   },
+
+  startAssembly() {
+    assemblyMode = true;
+    autoRotate   = false;
+    controls.enabled = false;
+    buildAssemblyScene();
+    assemblyT0 = performance.now();
+    // Isometric camera for assembly
+    const pw = (parseFloat(document.getElementById('panel_w').value)||100)/100;
+    const ph = (parseFloat(document.getElementById('panel_h').value)||100)/100;
+    const d = Math.max(pw, ph) * 3.0;
+    camera.position.set(d, d * 0.7, d);
+    controls.target.set(0, 0, 0);
+    controls.update();
+  },
+
+  stopAssembly() {
+    assemblyMode = false;
+    autoRotate   = true;
+    controls.enabled = true;
+    const pw = (parseFloat(document.getElementById('panel_w').value)||100)/100;
+    const ph = (parseFloat(document.getElementById('panel_h').value)||100)/100;
+    buildBox(pw, ph);
+    this.setCamera(pw, ph);
+  },
 };
 </script>
 
@@ -1322,6 +1507,19 @@ if (API_BASE) {
 
 let imgCount = 0;
 let _currentLayout = '4panel';   // '4panel' | 'topback'
+
+function switchTab(tab) {
+  document.getElementById('tab-preview').classList.toggle('active',  tab === 'preview');
+  document.getElementById('tab-assembly').classList.toggle('active', tab === 'assembly');
+  document.getElementById('previewHint').style.display  = tab === 'preview'  ? '' : 'none';
+  document.getElementById('assemblyHint').style.display = tab === 'assembly' ? 'block' : 'none';
+  const lbls = document.querySelector('.canvas-labels');
+  if (lbls) lbls.style.display = tab === 'preview' ? '' : 'none';
+  if (window._three) {
+    if (tab === 'assembly') window._three.startAssembly();
+    else                    window._three.stopAssembly();
+  }
+}
 
 function setLayout(mode) {
   _currentLayout = mode;
