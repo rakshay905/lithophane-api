@@ -96,7 +96,7 @@ body {
 }
 .right-canvas-area {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 116px;
+  top: 38px; left: 0; right: 0; bottom: 116px;
   display: flex; flex-direction: column;
   overflow: hidden;
 }
@@ -467,7 +467,7 @@ input[type=range]::-moz-range-thumb {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-  position: relative; z-index: 5;
+  position: absolute; top: 0; left: 0; right: 0; z-index: 6;
 }
 .prev-tab {
   flex: 1; padding: 9px 12px;
@@ -495,9 +495,11 @@ input[type=range]::-moz-range-thumb {
     position: static; height: auto;
     border-left: none; border-top: 1px solid var(--border);
   }
+  /* On mobile tabs are in normal flow — not absolute */
+  .preview-tabs { position: static; }
   .right-canvas-area {
     position: static;
-    height: auto; bottom: auto;
+    height: auto; bottom: auto; top: auto;
   }
   .gen-section {
     position: static;
@@ -902,13 +904,14 @@ input[type=range]::-moz-range-thumb {
 
   <!-- ═══════════ RIGHT ═══════════ -->
   <div class="right">
-  <div class="right-canvas-area">
 
-    <!-- Tab bar -->
+  <!-- Tab bar: absolute on desktop (over sticky panel), static on mobile -->
   <div class="preview-tabs">
     <button class="prev-tab active" id="tab-preview"  onclick="switchTab('preview')">3D Preview</button>
     <button class="prev-tab"        id="tab-assembly" onclick="switchTab('assembly')">Assembly</button>
   </div>
+
+  <div class="right-canvas-area">
 
   <!-- 3D Canvas -->
     <div class="canvas-wrap" id="canvasWrap">
