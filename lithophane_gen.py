@@ -82,11 +82,11 @@ def generate_lithophane_panel(image_bytes, width_mm, height_mm,
     # Normalize to [min_thick, max_thick]
     height_map = min_thick + (arr / 255.0) * (max_thick - min_thick)
 
-    # ── Border frame: flat outer rectangle + 45° taper at inner edge ──
+    # ── Border frame: raised solid frame with 45° chamfer at inner edge ──
     # Profile from outer edge inward:
-    #   outer flat zone (border_mm - max_thick mm): stays at max_thick
-    #   inner taper zone (max_thick mm): drops from max_thick to 0 at image boundary
-    # This makes the panel self-supporting when printed upright (no supports needed).
+    #   flat zone: max_thick all the way (solid opaque frame)
+    #   taper zone (inner max_thick mm): slopes from max_thick down to min_thick
+    # Border pixels are FORCED (not max'd) so the frame is always raised above the image.
     if border_mm > 0:
         bpx = max(1, int(border_mm * resolution))
         bpy = max(1, int(border_mm * resolution))
@@ -101,18 +101,20 @@ def generate_lithophane_panel(image_bytes, width_mm, height_mm,
         # d_min: 0 at outer edge, 1 at inner image boundary
         d_min   = np.minimum(np.minimum(d_top, d_bot), np.minimum(d_left, d_right))
 
-        # flat_ratio: d_min threshold where taper begins (outer flat zone → taper zone)
-        flat_ratio   = max(0.0, (border_mm - max_thick) / border_mm)
-        taper_denom  = max(1e-6, 1.0 - flat_ratio)
+        # flat zone = outer (border_mm - max_thick) mm, taper zone = inner max_thick mm
+        flat_ratio  = max(0.0, (border_mm - max_thick) / border_mm)
+        taper_denom = max(1e-6, 1.0 - flat_ratio)
 
+        # Taper drops from max_thick (at taper start) to min_thick (at image boundary)
         border_h = np.where(
             d_min < flat_ratio,
-            max_thick,                                       # outer flat rectangle
-            max_thick * (1.0 - d_min) / taper_denom         # 45° taper to inner edge
+            max_thick,
+            max_thick - (max_thick - min_thick) * (d_min - flat_ratio) / taper_denom
         )
 
+        # FORCE: override image pixels inside border zone so frame is always raised
         in_border = (d_min < 1.0)
-        height_map = np.where(in_border, np.maximum(height_map, border_h), height_map)
+        height_map = np.where(in_border, border_h, height_map)
 
     dx = width_mm / px_w
     dy = height_mm / px_h
