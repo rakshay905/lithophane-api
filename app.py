@@ -125,6 +125,7 @@ def _run_generation(job_id, params, images, offsets):
                 _set(job_id, '🔧 Building back service plate…', 36)
                 back_stl = generate_back_panel(
                     panel_w_mm=panel_w, panel_h_mm=panel_h, max_thick=max_thick,
+                    border_mm=border_mm,
                     switch_hole_d=back_switch_d, wire_hole_r=back_wire_r,
                     cable_slot_w=back_cable_w,
                 )

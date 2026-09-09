@@ -82,11 +82,11 @@ def generate_lithophane_panel(image_bytes, width_mm, height_mm,
     # Normalize to [min_thick, max_thick]
     height_map = min_thick + (arr / 255.0) * (max_thick - min_thick)
 
-    # ── Border frame: tapered/chamfered on all 4 edges (45° self-supporting) ──
-    # Each border edge linearly ramps from 0 at the outer face to max_thick
-    # at the inner boundary.  For 45° self-support: border_mm >= max_thick.
-    # With typical defaults (border=2, max_thick=3) the slope is steeper than
-    # 45°, so it's always safe to print standing up without supports.
+    # ── Border frame: flat outer rectangle + 45° taper at inner edge ──
+    # Profile from outer edge inward:
+    #   outer flat zone (border_mm - max_thick mm): stays at max_thick
+    #   inner taper zone (max_thick mm): drops from max_thick to 0 at image boundary
+    # This makes the panel self-supporting when printed upright (no supports needed).
     if border_mm > 0:
         bpx = max(1, int(border_mm * resolution))
         bpy = max(1, int(border_mm * resolution))
@@ -94,21 +94,23 @@ def generate_lithophane_panel(image_bytes, width_mm, height_mm,
         r = np.arange(px_h, dtype=float)
         c = np.arange(px_w, dtype=float)
 
-        # Normalised distance from each edge: 0 at the very edge, 1 at the
-        # inner boundary where the border meets the image area.
-        d_top    = np.clip((px_h - 1 - r) / bpy, 0, 1)[:, None]
-        d_bot    = np.clip(r / bpy,               0, 1)[:, None]
-        d_left   = np.clip(c / bpx,               0, 1)[None, :]
-        d_right  = np.clip((px_w - 1 - c) / bpx, 0, 1)[None, :]
+        d_top   = np.clip((px_h - 1 - r) / bpy, 0, 1)[:, None]
+        d_bot   = np.clip(r / bpy,               0, 1)[:, None]
+        d_left  = np.clip(c / bpx,               0, 1)[None, :]
+        d_right = np.clip((px_w - 1 - c) / bpx, 0, 1)[None, :]
+        # d_min: 0 at outer edge, 1 at inner image boundary
+        d_min   = np.minimum(np.minimum(d_top, d_bot), np.minimum(d_left, d_right))
 
-        # Minimum distance to any edge — 0 at corner/edge, 1 inside image
-        d_min = np.minimum(np.minimum(d_top, d_bot), np.minimum(d_left, d_right))
+        # flat_ratio: d_min threshold where taper begins (outer flat zone → taper zone)
+        flat_ratio   = max(0.0, (border_mm - max_thick) / border_mm)
+        taper_denom  = max(1e-6, 1.0 - flat_ratio)
 
-        # Tapered border thickness: rises from 0 at outer edge to max_thick
-        border_h = max_thick * d_min
+        border_h = np.where(
+            d_min < flat_ratio,
+            max_thick,                                       # outer flat rectangle
+            max_thick * (1.0 - d_min) / taper_denom         # 45° taper to inner edge
+        )
 
-        # Apply only in the border zone (d_min < 1); take max so image
-        # content thicker than the taper is preserved unchanged.
         in_border = (d_min < 1.0)
         height_map = np.where(in_border, np.maximum(height_map, border_h), height_map)
 
@@ -365,6 +367,7 @@ def generate_open_top_frame(panel_w_mm, panel_h_mm, col_w=12.0, wall_h=8.0,
 
 
 def generate_back_panel(panel_w_mm, panel_h_mm, max_thick=3.0,
+                        border_mm=0.0,
                         switch_hole_d=0.0, wire_hole_r=0.0,
                         cable_slot_w=0.0, cable_slot_h=10.0):
     """
@@ -373,10 +376,21 @@ def generate_back_panel(panel_w_mm, panel_h_mm, max_thick=3.0,
       switch_hole_d  > 0  → circular push-button hole centred at 2/3 height
       wire_hole_r    > 0  → circular cable hole at 1/4 height, centred (LED wire)
       cable_slot_w   > 0  → rectangular U-slot cut into the bottom edge for cable routing
+      border_mm      > 0  → decorative frame border matching lithophane panel style
     """
     import manifold3d as mf
 
     panel = mf.Manifold.cube([panel_w_mm, panel_h_mm, max_thick])
+
+    # Frame border: recess the center face to create a raised perimeter ring
+    if border_mm > 0:
+        recess = min(max_thick * 0.4, 1.2)
+        iw = panel_w_mm - 2 * border_mm
+        ih = panel_h_mm - 2 * border_mm
+        if iw > 4 and ih > 4:
+            cut = mf.Manifold.cube([iw, ih, recess + 1])
+            cut = cut.translate([border_mm, border_mm, max_thick - recess])
+            panel = panel - cut
 
     if switch_hole_d > 0:
         r = max(3.0, switch_hole_d / 2)
