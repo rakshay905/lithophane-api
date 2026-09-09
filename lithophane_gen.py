@@ -292,6 +292,76 @@ def generate_base(panel_w_mm, panel_h_mm, col_w=12.0, base_thick=5.0,
     return _manifold_to_stl_bytes(base)
 
 
+def generate_open_top_frame(panel_w_mm, panel_h_mm, col_w=12.0, wall_h=8.0,
+                             peg_w=6.0, fit_tol=0.3, lip_h=2.0):
+    """
+    Open-top frame: wall ring (no solid top plate) with a 2mm inner lip at the top.
+    Used in 'top panel' layout — horizontal lithophane panel drops in and rests on the lip.
+    Corner sockets at z=0 accept column top pegs as usual.
+    """
+    import manifold3d as mf
+
+    box_w     = panel_w_mm + col_w * 2
+    box_d     = panel_w_mm + col_w * 2
+    top_peg_h = 3.0
+    sock_w    = peg_w + fit_tol
+    sock_d    = top_peg_h + 0.2
+    pm        = (col_w - peg_w) / 2
+
+    # Full solid ring wall_h tall
+    frame = mf.Manifold.cube([box_w, box_d, wall_h])
+
+    # Carve inner opening from the bottom, leaving a lip_h ledge at the very top.
+    # Panel drops into opening from above and rests on this ledge.
+    inner_w = box_w - col_w * 2
+    inner_d = box_d - col_w * 2
+    inner_cut = mf.Manifold.cube([inner_w, inner_d, wall_h - lip_h + 2])
+    inner_cut = inner_cut.translate([col_w, col_w, -1])
+    frame = frame - inner_cut
+
+    # Corner sockets at z=0 (bottom face) for column top pegs
+    corners = [
+        (pm,                 pm),
+        (box_w - col_w + pm, pm),
+        (pm,                 box_d - col_w + pm),
+        (box_w - col_w + pm, box_d - col_w + pm),
+    ]
+    for cx, cy in corners:
+        socket = mf.Manifold.cube([sock_w, sock_w, sock_d])
+        socket = socket.translate([cx, cy, 0])
+        frame = frame - socket
+
+    return _manifold_to_stl_bytes(frame)
+
+
+def generate_back_panel(panel_w_mm, panel_h_mm, max_thick=3.0,
+                        switch_hole_d=0.0, cable_slot_w=0.0, cable_slot_h=10.0):
+    """
+    Solid opaque back service panel — same dimensions as the lithophane panels so it
+    slots into the same column grooves.  Holes are optional:
+      switch_hole_d  > 0  → circular push-button hole centred at 2/3 height
+      cable_slot_w   > 0  → rectangular U-slot cut into the bottom edge for cable routing
+    """
+    import manifold3d as mf
+
+    panel = mf.Manifold.cube([panel_w_mm, panel_h_mm, max_thick])
+
+    if switch_hole_d > 0:
+        r = max(3.0, switch_hole_d / 2)
+        cyl = mf.Manifold.cylinder(max_thick + 2, r, circular_segments=64)
+        cyl = cyl.translate([panel_w_mm / 2, panel_h_mm * 2 / 3, -1])
+        panel = panel - cyl
+
+    if cable_slot_w > 0:
+        sw = min(cable_slot_w, panel_w_mm - 10)
+        sh = min(cable_slot_h, panel_h_mm / 3)
+        slot = mf.Manifold.cube([sw, sh + 2, max_thick + 2])
+        slot = slot.translate([(panel_w_mm - sw) / 2, -1, -1])
+        panel = panel - slot
+
+    return _manifold_to_stl_bytes(panel)
+
+
 def generate_top_frame(panel_w_mm, panel_h_mm, col_w=12.0, frame_thick=4.0,
                        wall_h=8.0, peg_w=6.0, fit_tol=0.3, switch_hole_d=0.0):
     """

@@ -151,6 +151,7 @@ body {
 .upload-zone.filled[data-side=back]  { border-color: var(--col-back); }
 .upload-zone.filled[data-side=left]  { border-color: var(--col-left); }
 .upload-zone.filled[data-side=right] { border-color: var(--col-right); }
+.upload-zone.filled[data-side=top]   { border-color: var(--accent); }
 
 .upload-zone input { display: none; }
 .upload-bg {
@@ -187,6 +188,7 @@ body {
 .upload-zone[data-side=back]  .upload-label-text { color: var(--col-back); }
 .upload-zone[data-side=left]  .upload-label-text { color: var(--col-left); }
 .upload-zone[data-side=right] .upload-label-text { color: var(--col-right); }
+.upload-zone[data-side=top]   .upload-label-text { color: var(--accent); }
 .upload-hint-text { font-size: 10px; color: var(--text3); margin-top: 2px; }
 .upload-zone.filled .upload-hint-text { color: var(--text2); }
 .upload-change {
@@ -229,6 +231,7 @@ body {
 .upload-zone[data-side=back]  .upload-check { background: var(--col-back); color: #000; }
 .upload-zone[data-side=left]  .upload-check { background: var(--col-left); color: #000; }
 .upload-zone[data-side=right] .upload-check { background: var(--col-right); color: #000; }
+.upload-zone[data-side=top]   .upload-check { background: var(--accent); color: #fff; }
 .upload-zone.filled .upload-check { display: flex; }
 
 .tip {
@@ -495,6 +498,24 @@ input[type=range]::-moz-range-thumb {
   <!-- ═══════════ LEFT ═══════════ -->
   <div class="left">
 
+    <!-- Panel Layout -->
+    <div class="card">
+      <div class="card-head">🔲 Panel Layout</div>
+      <div class="card-body">
+        <input type="hidden" name="panel_layout" id="panel_layout" value="4panel">
+        <div class="toggle-pair" style="gap:6px">
+          <div class="toggle-btn active" id="opt-4panel" onclick="setLayout('4panel')" style="flex-direction:column;align-items:flex-start;gap:3px;padding:10px 12px">
+            <span style="font-size:13px;font-weight:700">4 Side Panels</span>
+            <small>Front · Back · Left · Right all glow</small>
+          </div>
+          <div class="toggle-btn" id="opt-topback" onclick="setLayout('topback')" style="flex-direction:column;align-items:flex-start;gap:3px;padding:10px 12px">
+            <span style="font-size:13px;font-weight:700">Top + 3 Sides</span>
+            <small>Top glows · back = service plate with holes</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Images -->
     <div class="card">
       <div class="card-head">
@@ -524,8 +545,8 @@ input[type=range]::-moz-range-thumb {
               <div class="pos-row"><span>Y</span><input type="range" id="oy-front" min="-100" max="100" value="0" oninput="onOffset('front','y',this.value)"><span class="pos-val" id="oyv-front">0</span></div>
             </div>
           </div>
-          <!-- Back -->
-          <div>
+          <!-- Back (4-panel mode) / hidden in topback mode -->
+          <div id="wrap-back">
             <div class="upload-zone" id="zone-back" data-side="back" onclick="triggerUpload('back')">
               <input type="file" name="img_back" id="img_back" accept="image/*" onchange="onImagePick(this,'back')">
               <input type="hidden" name="ox_back" id="ox-back-val" value="0">
@@ -543,6 +564,28 @@ input[type=range]::-moz-range-thumb {
             <div class="pos-sliders" id="pos-back">
               <div class="pos-row"><span>X</span><input type="range" id="ox-back" min="-100" max="100" value="0" oninput="onOffset('back','x',this.value)"><span class="pos-val" id="oxv-back">0</span></div>
               <div class="pos-row"><span>Y</span><input type="range" id="oy-back" min="-100" max="100" value="0" oninput="onOffset('back','y',this.value)"><span class="pos-val" id="oyv-back">0</span></div>
+            </div>
+          </div>
+          <!-- Top panel (topback mode only) -->
+          <div id="wrap-top" style="display:none">
+            <div class="upload-zone" id="zone-top" data-side="top" onclick="triggerUpload('top')"
+                 style="border-color:rgba(123,104,255,0.4)">
+              <input type="file" name="img_top" id="img_top" accept="image/*" onchange="onImagePick(this,'top')">
+              <input type="hidden" name="ox_top" id="ox-top-val" value="0">
+              <input type="hidden" name="oy_top" id="oy-top-val" value="0">
+              <img class="upload-bg" id="bg-top" src="" alt="">
+              <div class="upload-overlay"></div>
+              <div class="upload-check" style="background:var(--accent);color:#fff">✓</div>
+              <div class="upload-content">
+                <div class="upload-icon-wrap">📷</div>
+                <div class="upload-label-text" style="color:var(--accent)">Top</div>
+                <div class="upload-hint-text" id="hint-top">Horizontal · viewed from above</div>
+              </div>
+              <div class="upload-change">Change ↑</div>
+            </div>
+            <div class="pos-sliders" id="pos-top">
+              <div class="pos-row"><span>X</span><input type="range" id="ox-top" min="-100" max="100" value="0" oninput="onOffset('top','x',this.value)"><span class="pos-val" id="oxv-top">0</span></div>
+              <div class="pos-row"><span>Y</span><input type="range" id="oy-top" min="-100" max="100" value="0" oninput="onOffset('top','y',this.value)"><span class="pos-val" id="oyv-top">0</span></div>
             </div>
           </div>
           <!-- Left -->
@@ -746,8 +789,8 @@ input[type=range]::-moz-range-thumb {
       </div>
     </div>
 
-    <!-- Switch Hole -->
-    <div class="card">
+    <!-- Switch Hole (top frame — hidden in topback mode) -->
+    <div class="card" id="card-switch-top">
       <div class="card-head">🔘 Power Switch Hole (Top Frame)</div>
       <div class="card-body">
         <div class="settings-grid">
@@ -768,6 +811,38 @@ input[type=range]::-moz-range-thumb {
       </div>
     </div>
 
+    <!-- Back Plate Options (topback mode only) -->
+    <div class="card" id="card-backplate" style="display:none">
+      <div class="card-head">🔧 Back Service Plate Options</div>
+      <div class="card-body">
+        <div class="settings-grid">
+          <div class="field">
+            <label style="display:flex;align-items:center;gap:8px">
+              <input type="checkbox" id="chk-back-switch" onchange="toggleBackSwitch()" style="width:14px;height:14px;accent-color:var(--accent)">
+              Switch Hole (back plate)
+            </label>
+            <div id="back-switch-inputs" style="display:none;margin-top:8px">
+              <input type="number" name="back_switch_d" id="back_switch_d" value="12" min="6" max="22" step="1">
+              <span class="field-unit">Diameter mm · 12=standard · 16=large · 22=panel-mount</span>
+            </div>
+          </div>
+          <div class="field">
+            <label style="display:flex;align-items:center;gap:8px">
+              <input type="checkbox" id="chk-back-cable" onchange="toggleBackCable()" style="width:14px;height:14px;accent-color:var(--accent2)">
+              Cable Slot (back plate bottom edge)
+            </label>
+            <div id="back-cable-inputs" style="display:none;margin-top:8px">
+              <input type="number" name="back_cable_w" id="back_cable_w" value="20" min="8" max="60" step="1">
+              <span class="field-unit">Width mm · slot cut into bottom edge · default 20mm</span>
+            </div>
+          </div>
+        </div>
+        <div class="tip" style="margin-top:10px">
+          💡 The back plate is a solid opaque panel in place of a lithophane image. Add a <strong>switch hole</strong> (centred, 2/3 up) and/or a <strong>U-shaped cable slot</strong> in the bottom edge so the LED wire exits cleanly from the back.
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ═══════════ RIGHT ═══════════ -->
@@ -781,8 +856,11 @@ input[type=range]::-moz-range-thumb {
         <div class="canvas-label" style="background:rgba(255,107,107,0.15);color:#ff6b6b">
           <div class="dot" style="background:#ff6b6b"></div>Front
         </div>
-        <div class="canvas-label" style="background:rgba(78,201,196,0.15);color:#4ec9c4">
+        <div class="canvas-label" id="lbl-back" style="background:rgba(78,201,196,0.15);color:#4ec9c4">
           <div class="dot" style="background:#4ec9c4"></div>Back
+        </div>
+        <div class="canvas-label" id="lbl-top" style="display:none;background:rgba(123,104,255,0.15);color:#7b68ff">
+          <div class="dot" style="background:#7b68ff"></div>Top
         </div>
         <div class="canvas-label" style="background:rgba(255,217,61,0.15);color:#ffd93d">
           <div class="dot" style="background:#ffd93d"></div>Left
@@ -813,6 +891,11 @@ input[type=range]::-moz-range-thumb {
         <span>Back</span>
         <span class="ps-check" id="pc-back">—</span>
       </div>
+      <div class="ps-item" id="ps-top" style="display:none">
+        <div class="ps-dot" style="background:var(--accent)"></div>
+        <span>Top</span>
+        <span class="ps-check" id="pc-top">—</span>
+      </div>
       <div class="ps-item" id="ps-left">
         <div class="ps-dot" style="background:var(--col-left)"></div>
         <span>Left</span>
@@ -822,6 +905,11 @@ input[type=range]::-moz-range-thumb {
         <div class="ps-dot" style="background:var(--col-right)"></div>
         <span>Right</span>
         <span class="ps-check" id="pc-right">—</span>
+      </div>
+      <div class="ps-item" id="ps-backplate" style="display:none;opacity:0.5">
+        <div class="ps-dot" style="background:var(--text3)"></div>
+        <span>Back</span>
+        <span class="ps-check" style="color:var(--text3)">🔧</span>
       </div>
     </div>
 
@@ -913,8 +1001,9 @@ scene.add(led);
 let autoRotate = true;
 let box = new THREE.Group();
 scene.add(box);
+let _layoutMode = '4panel';   // '4panel' | 'topback'
 
-const texCache = { front: null, back: null, left: null, right: null };
+const texCache = { front: null, back: null, left: null, right: null, top: null };
 
 controls.addEventListener('start', () => { autoRotate = false; });
 controls.addEventListener('end',   () => { setTimeout(() => autoRotate = true, 2500); });
@@ -957,29 +1046,29 @@ function buildBox(pw, ph) {
   const bt  = 0.040;        // base/top plate thickness
   const wh  = 0.072;        // tray/cap wall height
   const eps = 0.001;
+  const topback = (_layoutMode === 'topback');
 
   const fm = frameMat();
 
-  // ── 4 Panels ──
-  // nx/nz = outward normal direction; faceRy = rotation so PlaneGeometry faces outward
-  const panelDefs = [
+  // ── Vertical panels ──
+  const vertPanelDefs = [
     { key:'front', pos:[0,          0, pd/2+pt/2],  bodyRy:0,          nx:0,  nz:1,  faceRy:0          },
-    { key:'back',  pos:[0,          0,-(pd/2+pt/2)],bodyRy:Math.PI,    nx:0,  nz:-1, faceRy:Math.PI    },
     { key:'left',  pos:[-(pw/2+pt/2),0, 0],          bodyRy:Math.PI/2,  nx:-1, nz:0,  faceRy:-Math.PI/2 },
     { key:'right', pos:[ pw/2+pt/2, 0, 0],           bodyRy:-Math.PI/2, nx:1,  nz:0,  faceRy:Math.PI/2  },
   ];
 
-  panelDefs.forEach(def => {
-    const horiz = (def.nx === 0);   // front/back are horizontal panels
-    const bw = horiz ? pw : pd;
+  if (!topback) {
+    // 4-panel: back is also a lit image panel
+    vertPanelDefs.push({ key:'back', pos:[0, 0,-(pd/2+pt/2)], bodyRy:Math.PI, nx:0, nz:-1, faceRy:Math.PI });
+  }
 
-    // Body (creamy slab)
+  vertPanelDefs.forEach(def => {
+    const bw = (def.nx === 0) ? pw : pd;
     const body = new THREE.Mesh(new THREE.BoxGeometry(bw, ph, pt), panelBodyMat());
     body.position.set(...def.pos);
     body.rotation.y = def.bodyRy;
     box.add(body);
 
-    // Face plane — placed on OUTER surface, normal pointing outward
     const face = new THREE.Mesh(new THREE.PlaneGeometry(bw, ph), panelFaceMat(texCache[def.key]));
     face.position.set(
       def.pos[0] + def.nx * (pt/2 + eps),
@@ -989,6 +1078,14 @@ function buildBox(pw, ph) {
     face.rotation.y = def.faceRy;
     box.add(face);
   });
+
+  // ── Back service plate (topback mode: solid dark slab) ──
+  if (topback) {
+    const backMat = new THREE.MeshStandardMaterial({ color: 0x1a1a2e, roughness: 0.55, metalness: 0.2 });
+    const backBody = new THREE.Mesh(new THREE.BoxGeometry(pw, ph, pt * 1.2), backMat);
+    backBody.position.set(0, 0, -(pd/2 + pt * 0.6));
+    box.add(backBody);
+  }
 
   const bw2 = pw + cw*2;
   const bd2 = pd + cw*2;
@@ -1010,22 +1107,57 @@ function buildBox(pw, ph) {
     box.add(m);
   });
 
-  // ── Top CAP: solid plate + 4 walls hanging down ──
-  const topPlateY = ph/2 + wh + bt/2;
-  const topWallY  = ph/2 + wh/2;
-  const topPlate  = new THREE.Mesh(new THREE.BoxGeometry(bw2, bt, bd2), fm);
-  topPlate.position.set(0, topPlateY, 0);
-  box.add(topPlate);
-  [
-    { size:[bw2, wh, cw], pos:[0,           topWallY,  bd2/2-cw/2] },
-    { size:[bw2, wh, cw], pos:[0,           topWallY, -bd2/2+cw/2] },
-    { size:[cw,  wh, pd], pos:[-bw2/2+cw/2, topWallY,  0]          },
-    { size:[cw,  wh, pd], pos:[ bw2/2-cw/2, topWallY,  0]          },
-  ].forEach(({ size, pos }) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(...size), fm);
-    m.position.set(...pos);
-    box.add(m);
-  });
+  const topWallY = ph/2 + wh/2;
+  if (topback) {
+    // ── Open top frame: wall ring only (no solid plate) + thin lip at very top ──
+    const lipH = 0.016;  // 2mm in scene units
+    [
+      { size:[bw2, wh-lipH, cw],   pos:[0,           topWallY - lipH/2,  bd2/2-cw/2] },
+      { size:[bw2, wh-lipH, cw],   pos:[0,           topWallY - lipH/2, -bd2/2+cw/2] },
+      { size:[cw,  wh-lipH, pd],   pos:[-bw2/2+cw/2, topWallY - lipH/2,  0]          },
+      { size:[cw,  wh-lipH, pd],   pos:[ bw2/2-cw/2, topWallY - lipH/2,  0]          },
+      // Lip strip (full ring, thinner)
+      { size:[bw2, lipH, bd2],     pos:[0, ph/2 + wh - lipH/2, 0] },
+    ].forEach(({ size, pos }) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(...size), fm);
+      m.position.set(...pos);
+      box.add(m);
+    });
+
+    // Top lithophane panel: horizontal slab sitting in the opening
+    const topPanY = ph/2 + wh - lipH - pt/2;
+    const topBody = new THREE.Mesh(new THREE.BoxGeometry(pw, pt, pd), panelBodyMat());
+    topBody.position.set(0, topPanY, 0);
+    box.add(topBody);
+
+    if (texCache['top']) {
+      const topFaceMat = new THREE.MeshStandardMaterial({
+        map: texCache['top'], roughness: 0.88, metalness: 0,
+        emissive: 0x221108, emissiveIntensity: 0.18,
+        transparent: true, opacity: 0.92,
+      });
+      const topFace = new THREE.Mesh(new THREE.PlaneGeometry(pw, pd), topFaceMat);
+      topFace.rotation.x = -Math.PI / 2;
+      topFace.position.set(0, topPanY + pt/2 + eps, 0);
+      box.add(topFace);
+    }
+  } else {
+    // ── Top CAP: solid plate + 4 walls hanging down ──
+    const topPlateY = ph/2 + wh + bt/2;
+    const topPlate  = new THREE.Mesh(new THREE.BoxGeometry(bw2, bt, bd2), fm);
+    topPlate.position.set(0, topPlateY, 0);
+    box.add(topPlate);
+    [
+      { size:[bw2, wh, cw], pos:[0,           topWallY,  bd2/2-cw/2] },
+      { size:[bw2, wh, cw], pos:[0,           topWallY, -bd2/2+cw/2] },
+      { size:[cw,  wh, pd], pos:[-bw2/2+cw/2, topWallY,  0]          },
+      { size:[cw,  wh, pd], pos:[ bw2/2-cw/2, topWallY,  0]          },
+    ].forEach(({ size, pos }) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(...size), fm);
+      m.position.set(...pos);
+      box.add(m);
+    });
+  }
 
   // ── 4 Corner columns ──
   const colH = ph + wh * 2;
@@ -1129,10 +1261,16 @@ window._three = {
   },
 
   reapplyAll() {
-    // Called when panel dimensions change so cover-fit is recalculated
-    ['front','back','left','right'].forEach(s => {
+    ['front','back','left','right','top'].forEach(s => {
       if (texMeta[s]) this.updateOffset(s);
     });
+  },
+
+  setLayoutMode(mode) {
+    _layoutMode = mode;
+    const pw = (parseFloat(document.getElementById('panel_w').value)||100)/100;
+    const ph = (parseFloat(document.getElementById('panel_h').value)||100)/100;
+    buildBox(pw, ph);
   },
 
   setCamera(pw, ph) {
@@ -1154,6 +1292,38 @@ if (API_BASE) {
 }
 
 let imgCount = 0;
+let _currentLayout = '4panel';   // '4panel' | 'topback'
+
+function setLayout(mode) {
+  _currentLayout = mode;
+  document.getElementById('panel_layout').value = mode;
+
+  const topback = (mode === 'topback');
+  document.getElementById('opt-4panel').classList.toggle('active', !topback);
+  document.getElementById('opt-topback').classList.toggle('active', topback);
+
+  // Upload zones
+  document.getElementById('wrap-back').style.display = topback ? 'none' : '';
+  document.getElementById('wrap-top').style.display  = topback ? '' : 'none';
+
+  // Panel status bar
+  document.getElementById('ps-back').style.display     = topback ? 'none' : '';
+  document.getElementById('ps-top').style.display      = topback ? '' : 'none';
+  document.getElementById('ps-backplate').style.display = topback ? '' : 'none';
+
+  // Switch hole card (top frame) hidden in topback mode
+  document.getElementById('card-switch-top').style.display = topback ? 'none' : '';
+  document.getElementById('card-backplate').style.display  = topback ? '' : 'none';
+
+  // Canvas labels
+  document.getElementById('lbl-back').style.display = topback ? 'none' : '';
+  document.getElementById('lbl-top').style.display  = topback ? '' : 'none';
+
+  // 3D preview
+  if (window._three) window._three.setLayoutMode(mode);
+
+  updateImgCount();
+}
 
 function triggerUpload(side) {
   document.getElementById('img_' + side).click();
@@ -1199,8 +1369,10 @@ function onImagePick(input, side) {
       ? file.name.slice(0, 16) + '…' : file.name;
     const posEl = document.getElementById('pos-' + side);
     if (posEl) posEl.style.display = 'flex';
-    document.getElementById('ps-' + side).classList.add('ready');
-    document.getElementById('pc-' + side).textContent = '✓';
+    const psEl = document.getElementById('ps-' + side);
+    if (psEl) psEl.classList.add('ready');
+    const pcEl = document.getElementById('pc-' + side);
+    if (pcEl) pcEl.textContent = '✓';
     updateImgCount();   // enable button right now
 
     // Compress in background — store blob when ready, used at submit time
@@ -1216,8 +1388,11 @@ function onImagePick(input, side) {
 }
 
 function updateImgCount() {
-  const count = ['front','back','left','right'].filter(
-    s => document.getElementById('zone-'+s).classList.contains('filled')
+  const activeSides = (_currentLayout === 'topback')
+    ? ['front','top','left','right']
+    : ['front','back','left','right'];
+  const count = activeSides.filter(
+    s => document.getElementById('zone-'+s)?.classList.contains('filled')
   ).length;
   document.getElementById('img-count-badge').textContent = count + ' / 4';
   document.getElementById('dbgCount').textContent = count;
@@ -1276,6 +1451,18 @@ function toggleSwitch() {
   if (!on) document.getElementById('switch_hole_d').value = 0;
 }
 
+function toggleBackSwitch() {
+  const on = document.getElementById('chk-back-switch').checked;
+  document.getElementById('back-switch-inputs').style.display = on ? 'block' : 'none';
+  if (!on) document.getElementById('back_switch_d').value = 0;
+}
+
+function toggleBackCable() {
+  const on = document.getElementById('chk-back-cable').checked;
+  document.getElementById('back-cable-inputs').style.display = on ? 'block' : 'none';
+  if (!on) document.getElementById('back_cable_w').value = 0;
+}
+
 function onOffset(side, axis, val) {
   const v = parseInt(val);
   document.getElementById((axis==='x'?'oxv':'oyv') + '-' + side).textContent = v;
@@ -1327,9 +1514,11 @@ function _hideUnusedPanelRows(uploadedCount) {
 }
 
 async function doGenerate() {
-  const sides = ['front','back','left','right'];
+  const sides = (_currentLayout === 'topback')
+    ? ['front','top','left','right']
+    : ['front','back','left','right'];
   const uploaded = sides.filter(s =>
-    document.getElementById('zone-'+s).classList.contains('filled')
+    document.getElementById('zone-'+s)?.classList.contains('filled')
   );
 
   const wrap = document.getElementById('progressWrap');
@@ -1366,6 +1555,12 @@ async function doGenerate() {
       const b = _compressedBlobs[side];
       if (b) formData.set('img_' + side, b, side + '.jpg');
     });
+    // Ensure unused side's file input doesn't send stale data
+    if (_currentLayout === 'topback') {
+      formData.delete('img_back');
+    } else {
+      formData.delete('img_top');
+    }
 
     const resp = await fetch(API_BASE + '/generate', { method: 'POST', body: formData });
     const data = await resp.json();
