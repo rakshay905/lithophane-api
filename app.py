@@ -124,8 +124,8 @@ def _run_generation(job_id, params, images, offsets):
 
                 _set(job_id, '🔧 Building back service plate…', 36)
                 back_stl = generate_back_panel(
-                    panel_w_mm=panel_w, panel_h_mm=panel_h, max_thick=max_thick,
-                    border_mm=border_mm,
+                    panel_w_mm=panel_w - 2*fit_tol, panel_h_mm=panel_h - 2*fit_tol,
+                    max_thick=max_thick, border_mm=border_mm,
                     switch_hole_d=back_switch_d, wire_hole_r=back_wire_r,
                     cable_slot_w=back_cable_w,
                 )
@@ -147,9 +147,10 @@ def _run_generation(job_id, params, images, offsets):
                 # Top panel is horizontal (square, same width as box interior)
                 pw = panel_w if label != 'top' else panel_w
                 ph = panel_h if label != 'top' else panel_w
+                # Subtract slide clearance so panel fits between columns (0.3mm each side)
                 panel_stl = generate_lithophane_panel(
                     image_bytes=images[label],
-                    width_mm=pw, height_mm=ph,
+                    width_mm=pw - 2*fit_tol, height_mm=ph - 2*fit_tol,
                     min_thick=min_thick, max_thick=max_thick,
                     resolution=resolution, offset_x=ox, offset_y=oy,
                     border_mm=border_mm,
