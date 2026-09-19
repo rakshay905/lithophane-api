@@ -69,7 +69,6 @@ body {
 .header-title { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
 .header-sub   { font-size: 12px; color: var(--text2); margin-top: 1px; }
 .header-badge {
-  margin-left: auto;
   background: rgba(56,217,169,0.12);
   border: 1px solid rgba(56,217,169,0.3);
   color: var(--accent3);
@@ -77,6 +76,14 @@ body {
   padding: 4px 10px;
   font-size: 11px; font-weight: 600;
 }
+.nav-links { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.nav-link {
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  text-decoration: none; color: var(--text2);
+  border: 1px solid var(--border); transition: all 0.2s;
+}
+.nav-link:hover { color: var(--text); border-color: var(--accent); }
+.nav-link.active { background: rgba(123,104,255,0.15); color: var(--accent); border-color: var(--accent); }
 
 /* ── Layout ── */
 .app {
@@ -325,6 +332,22 @@ input[type=range]::-moz-range-thumb {
 .toggle-btn small { display: block; font-size: 10px; color: var(--text3); }
 .toggle-btn.active small { color: var(--text2); }
 
+/* ── Toggle switch (checkbox) ── */
+.toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; cursor: pointer; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-track {
+  position: absolute; inset: 0; border-radius: 11px;
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15);
+  transition: background 0.2s;
+}
+.toggle-track::after {
+  content: ''; position: absolute; left: 3px; top: 3px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; transition: transform 0.2s;
+}
+.toggle-switch input:checked + .toggle-track { background: var(--accent); border-color: var(--accent); }
+.toggle-switch input:checked + .toggle-track::after { transform: translateX(18px); }
+
 /* ── Right panel ── */
 .canvas-wrap {
   flex: 1; min-height: 0; position: relative;
@@ -526,9 +549,122 @@ input[type=range]::-moz-range-thumb {
   .header-title { font-size: 15px; }
   .upload-grid { grid-template-columns: 1fr; }
 }
+#mobile-banner {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: linear-gradient(90deg, #1a1060 0%, #2a1880 100%);
+  border-bottom: 1px solid rgba(130,100,255,0.4);
+  padding: 10px 16px;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #ddd;
+}
+#mobile-banner .mb-icon { font-size: 18px; flex-shrink: 0; }
+#mobile-banner .mb-text { flex: 1; line-height: 1.4; }
+#mobile-banner .mb-text strong { color: #fff; }
+#mobile-banner .mb-close {
+  background: rgba(255,255,255,0.12);
+  border: none;
+  color: #ccc;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+#mobile-banner .mb-close:hover { background: rgba(255,255,255,0.22); }
+
+/* ── Pro lock overlays ── */
+.pro-lock-wrap { position: relative; }
+.pro-lock-wrap::after {
+  content: '';
+  position: absolute; inset: 0; border-radius: 10px;
+  background: rgba(8,8,16,.55);
+  pointer-events: all; cursor: pointer;
+  z-index: 5;
+}
+.pro-lock-badge {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  background: rgba(123,104,255,.85); color: #fff;
+  border-radius: 20px; padding: 4px 12px;
+  font-size: 11px; font-weight: 700; white-space: nowrap;
+  z-index: 6; pointer-events: none; letter-spacing: .3px;
+}
+
+/* ── Upgrade modal ── */
+#upgrade-modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.75); z-index: 950;
+  align-items: center; justify-content: center;
+}
+#upgrade-modal.open { display: flex; }
+.upgrade-modal-card {
+  background: #15122a; border: 1px solid rgba(130,100,255,.35);
+  border-radius: 16px; padding: 32px 28px; max-width: 380px; width: 90%;
+  text-align: center;
+}
+.upgrade-modal-card .um-icon { font-size: 40px; margin-bottom: 14px; }
+.upgrade-modal-card h3 { font-size: 18px; color: #e0d4ff; margin-bottom: 8px; }
+.upgrade-modal-card p { font-size: 13px; color: #9080bb; line-height: 1.6; margin-bottom: 20px; }
+.um-actions { display: flex; gap: 10px; justify-content: center; }
+.um-upgrade-btn {
+  background: linear-gradient(135deg,#7c3aed,#4f46e5);
+  border: none; border-radius: 9px; padding: 10px 22px;
+  color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+  text-decoration: none; display: inline-block;
+}
+.um-upgrade-btn:hover { opacity: .85; }
+.um-skip { background: #1e1a3a; border: 1px solid rgba(130,100,255,.2); color: #a090d0;
+  border-radius: 9px; padding: 10px 18px; font-size: 13px; cursor: pointer; }
+
+/* ── Gen limit info bar ── */
+#gen-limit-bar {
+  background: #13131f; border: 1px solid #23233a; border-radius: 10px;
+  padding: 10px 16px; font-size: 12px; color: #9898b0;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+#gen-limit-bar a { color: var(--accent); text-decoration: none; }
+#gen-limit-bar a:hover { text-decoration: underline; }
+#gen-limit-bar.limit-hit { border-color: rgba(255,95,126,.35); color: #ff8fa0; }
+
+/* ── Cooldown overlay ── */
+#cooldown-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.75); z-index: 960;
+  align-items: center; justify-content: center;
+}
+#cooldown-overlay.open { display: flex; }
+.cd-card {
+  background: #15122a; border: 1px solid rgba(255,95,126,.3);
+  border-radius: 14px; padding: 28px 26px; max-width: 340px; width: 90%; text-align: center;
+}
+.cd-card .cd-icon { font-size: 38px; margin-bottom: 12px; }
+.cd-card h3 { font-size: 16px; color: #e0d4ff; margin-bottom: 8px; }
+.cd-card p { font-size: 13px; color: #9080bb; margin-bottom: 16px; line-height: 1.6; }
+.cd-timer { font-size: 32px; font-weight: 800; color: #a080ff; letter-spacing: 2px; }
+.cd-upgrade { font-size: 12px; margin-top: 14px; }
+.cd-upgrade a { color: #a080ff; }
+.cd-dismiss { background: #1e1a3a; border: 1px solid rgba(130,100,255,.2); color: #a090d0;
+  border-radius: 8px; padding: 8px 18px; font-size: 13px; cursor: pointer; margin-top: 14px; }
 </style>
 </head>
 <body>
+
+{% if announcement %}
+<div id="announce-bar" style="background:linear-gradient(90deg,#7b68ff 0%,#ff6fa3 100%);color:#fff;text-align:center;padding:10px 48px;font-size:13px;font-weight:600;position:relative;z-index:200;line-height:1.4">
+  {{ announcement }}
+  <button onclick="document.getElementById('announce-bar').style.display='none'" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.8);font-size:20px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+</div>
+{% endif %}
+
+<div id="mobile-banner">
+  <span class="mb-icon">🖥️</span>
+  <span class="mb-text"><strong>Best on Desktop</strong> — this tool works better on a larger screen. Open it on your computer for the full experience.</span>
+  <button class="mb-close" onclick="dismissMobileBanner()">Got it</button>
+</div>
 
 <header class="header">
   <div class="header-logo">🔆</div>
@@ -536,8 +672,29 @@ input[type=range]::-moz-range-thumb {
     <div class="header-title">Lithophane Light Box</div>
     <div class="header-sub">Upload images · Customize · Download STL files</div>
   </div>
-  <div class="header-badge">3D Preview</div>
+  <nav class="nav-links">
+    <a href="/" class="nav-link active">💡 Light Box</a>
+    <div class="header-badge">3D Preview</div>
+    {% if current_user %}
+      {% if user_tier in ('pro',) %}
+        <a href="/dashboard" class="nav-link" style="background:rgba(168,85,247,.15);color:#d4acff;border-color:rgba(168,85,247,.4)">⚡ Pro</a>
+      {% elif user_tier == 'plus' %}
+        <a href="/dashboard" class="nav-link" style="background:rgba(192,132,252,.12);color:#c084fc;border-color:rgba(192,132,252,.35)">✦ Plus</a>
+      {% else %}
+        <a href="/pricing" class="nav-link" style="background:rgba(123,104,255,.12);color:var(--accent);border-color:var(--accent)">⬆ Upgrade</a>
+      {% endif %}
+      <a href="/dashboard" class="nav-link">{{ current_user.name or current_user.email | truncate(18, True, '…') }}</a>
+    {% else %}
+      <a href="/pricing" class="nav-link" style="background:rgba(123,104,255,.12);color:var(--accent);border-color:var(--accent)">⬆ Upgrade</a>
+      <a href="/login" class="nav-link">👤 Login</a>
+    {% endif %}
+  </nav>
 </header>
+
+<script>
+window.USER_TIER  = '{{ user_tier }}';
+window.TIER_RANK  = {{ tier_rank }};
+</script>
 
 <form id="mainForm" enctype="multipart/form-data">
 <div class="app">
@@ -715,7 +872,7 @@ input[type=range]::-moz-range-thumb {
     </div>
 
     <!-- Dimensions -->
-    <div class="card">
+    <div class="card" id="panel-size-card">
       <div class="card-head">📐 Panel Dimensions</div>
       <div class="card-body">
         <div class="settings-grid">
@@ -752,7 +909,7 @@ input[type=range]::-moz-range-thumb {
       <div class="card-head">⚙ Advanced Settings</div>
       <div class="card-body">
         <div class="settings-grid">
-          <div class="field span2">
+          <div class="field span2" id="res-field">
             <div class="slider-wrap">
               <div class="slider-header">
                 <label>Print Resolution</label>
@@ -763,17 +920,39 @@ input[type=range]::-moz-range-thumb {
               <span class="field-unit">Higher = finer detail, larger file &amp; longer wait · 2=fast, 3=balanced, 5=fine</span>
             </div>
           </div>
-          <div class="field">
+          <div class="field" id="col-w-field">
             <label>Column Width (mm)</label>
             <input type="number" name="col_w" id="col_w" value="12" min="8" max="20" step="1" oninput="onSettingsChange()">
             <span class="field-unit">Corner post size · 8–20 mm</span>
           </div>
-          <div class="field">
+          <div class="field" id="fit-tol-field">
             <label>Fit Tolerance (mm)</label>
             <input type="number" name="fit_tol" id="fit_tol" value="0.3" min="0.1" max="0.5" step="0.05">
             <span class="field-unit">Snap-fit gap · 0.3 = standard · 0.4 = loose · 0.2 = tight</span>
           </div>
-          <div class="field">
+          <div class="field" id="fillet-field">
+            <label style="display:flex;align-items:center;gap:8px">
+              <label class="toggle-switch" style="flex-shrink:0;margin:0">
+                <input type="checkbox" id="chk-fillet" onchange="onFilletChange()">
+                <span class="toggle-track"></span>
+              </label>
+              Fillet Outer Edges
+            </label>
+            <input type="hidden" name="fillet_r" id="fillet_r" value="0">
+            <input type="hidden" name="fillet_h_r" id="fillet_h_r" value="0">
+            <div id="fillet-inputs" style="display:none;margin-top:6px">
+              <input type="number" id="fillet_r_disp" value="1.5" min="0.5" max="5" step="0.5"
+                     oninput="onFilletChange(); onSettingsChange()"
+                     style="width:80px">
+              <span class="field-unit" id="fillet-hint">mm · Recommended: 1.5 mm</span>
+              <label style="display:flex;align-items:center;gap:6px;margin-top:7px;cursor:pointer">
+                <input type="checkbox" id="chk-fillet-rim" onchange="onFilletChange()" style="width:14px;height:14px;cursor:pointer">
+                <span class="field-unit" style="color:var(--text2)">Also round top/bottom rim edges (base &amp; top frame)</span>
+              </label>
+            </div>
+            <span class="field-unit" id="fillet-off-hint">Round outer corner edges of base, top frame &amp; columns</span>
+          </div>
+          <div class="field" id="light-source-field">
             <label>Light Source</label>
             <input type="hidden" name="light_pos" id="light_pos" value="bottom">
             <div class="toggle-pair">
@@ -792,7 +971,7 @@ input[type=range]::-moz-range-thumb {
     </div>
 
     <!-- Wire Hole -->
-    <div class="card">
+    <div class="card" id="hole-options-card">
       <div class="card-head">🔌 Wire Hole (LED Cable)</div>
       <div class="card-body">
         <div class="settings-grid">
@@ -908,6 +1087,7 @@ input[type=range]::-moz-range-thumb {
   <!-- Tab bar: absolute on desktop (over sticky panel), static on mobile -->
   <div class="preview-tabs">
     <button class="prev-tab active" id="tab-preview"  onclick="switchTab('preview')">3D Preview</button>
+    <button class="prev-tab"        id="tab-flat"     onclick="switchTab('flat')">Image Preview</button>
     <button class="prev-tab"        id="tab-assembly" onclick="switchTab('assembly')">Assembly</button>
   </div>
 
@@ -937,12 +1117,20 @@ input[type=range]::-moz-range-thumb {
       </div>
     </div>
 
+    <!-- Flat 2D image preview canvas -->
+    <div class="canvas-wrap" id="flatWrap" style="display:none;background:#0a0812">
+      <canvas id="flatCanvas" style="width:100%;height:100%;display:block"></canvas>
+      <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(8,8,16,.75);border:1px solid rgba(130,100,255,.2);border-radius:20px;padding:5px 14px;font-size:11px;color:#7060a0;pointer-events:none;white-space:nowrap">
+        Front panel image preview · sliders update crop
+      </div>
+    </div>
+
     <!-- Dimensions -->
     <div class="dim-bar">
       <div class="dim-item"><div class="dim-val" id="d-w">124</div><div class="dim-lbl">Width mm</div></div>
       <div class="dim-item"><div class="dim-val" id="d-d">124</div><div class="dim-lbl">Depth mm</div></div>
       <div class="dim-item"><div class="dim-val" id="d-h">111</div><div class="dim-lbl">Height mm</div></div>
-      <div class="dim-item"><div class="dim-val">7</div><div class="dim-lbl">Parts</div></div>
+      <div class="dim-item"><div class="dim-val" id="d-parts">7</div><div class="dim-lbl">Parts</div></div>
     </div>
 
     <!-- Panel status -->
@@ -986,8 +1174,48 @@ input[type=range]::-moz-range-thumb {
       <div id="dbgBar" style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:8px;padding:4px 8px;background:rgba(255,255,255,0.04);border-radius:6px;">
         Images: <span id="dbgCount">0</span>/4 &nbsp;|&nbsp; Tap an upload zone above to add an image
       </div>
+
+      <!-- Frame-only toggle -->
+      <div id="frame-only-row" style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:10px 14px;background:rgba(255,255,255,0.04);border-radius:10px;border:1px solid rgba(255,255,255,0.08);">
+        <label class="toggle-switch" style="flex-shrink:0">
+          <input type="checkbox" id="chk-frame-only" onchange="onFrameOnlyChange()">
+          <span class="toggle-track"></span>
+        </label>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text1)">Frame Only</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px">Base + Columns + Top Frame + Back Plate — no image panels needed</div>
+        </div>
+      </div>
+
+      <!-- Image-only toggle -->
+      <div id="image-only-row" style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:10px 14px;background:rgba(255,255,255,0.04);border-radius:10px;border:1px solid rgba(255,255,255,0.08);">
+        <label class="toggle-switch" style="flex-shrink:0">
+          <input type="checkbox" id="chk-image-only" onchange="onImageOnlyChange()">
+          <span class="toggle-track"></span>
+        </label>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text1)">Image Panels Only</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px">Just the lithophane panels — skip base/columns/frame (reprint panels for an existing frame)</div>
+        </div>
+      </div>
+
+      <!-- Single-part selector (shown when frame-only is on) -->
+      <div id="part-selector-wrap" style="display:none;margin-bottom:12px;padding:10px 14px;background:rgba(255,255,255,0.04);border-radius:10px;border:1px solid rgba(255,255,255,0.08);">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:7px">Which part to download:</div>
+        <select id="part-select" onchange="onPartSelectChange()" style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.14);background:#1e1e30;color:var(--text1);font-size:13px;outline:none;cursor:pointer">
+          <option value="all">All frame parts (ZIP)</option>
+        </select>
+      </div>
+
+      <!-- Gen limit / cooldown info -->
+      <div id="gen-limit-bar" style="display:none;margin-bottom:8px">
+        <span id="gen-limit-text"></span>
+        <span id="gen-cd-text" style="color:#a080ff;font-weight:600"></span>
+        <a href="/pricing" id="gen-upgrade-link" style="display:none;margin-left:auto">⬆ Upgrade</a>
+      </div>
+
       <button type="button" class="btn-generate" id="genBtn" onclick="doGenerate()">
-        <span class="btn-icon">⬇</span> Generate STL Files &amp; Download ZIP
+        <span class="btn-icon">⬇</span> <span id="genBtnLabel">Generate STL Files &amp; Download ZIP</span>
       </button>
       <div class="progress-wrap" id="progressWrap">
         <div class="prog-step">
@@ -1001,6 +1229,7 @@ input[type=range]::-moz-range-thumb {
           <div class="prog-step-item" id="ps-col">  <div class="prog-step-dot"></div>📐 Cutting column grooves</div>
           <div class="prog-step-item" id="ps-base"> <div class="prog-step-dot"></div>🧱 Building base plate</div>
           <div class="prog-step-item" id="ps-frame"><div class="prog-step-dot"></div>🔲 Shaping top frame</div>
+          <div class="prog-step-item" id="ps-back-svc" style="display:none"><div class="prog-step-dot"></div>🔧 Building back plate</div>
           <div class="prog-step-item" id="ps-p1">   <div class="prog-step-dot"></div>🖼 Rendering panel 1</div>
           <div class="prog-step-item" id="ps-p2">   <div class="prog-step-dot"></div>🖼 Rendering panel 2</div>
           <div class="prog-step-item" id="ps-p3">   <div class="prog-step-dot"></div>🖼 Rendering panel 3</div>
@@ -1017,6 +1246,31 @@ input[type=range]::-moz-range-thumb {
   </div>
 </div>
 </form>
+
+<!-- ── Upgrade Modal ── -->
+<div id="upgrade-modal">
+  <div class="upgrade-modal-card">
+    <div class="um-icon" id="um-icon">🔒</div>
+    <h3 id="um-title">Pro Feature</h3>
+    <p id="um-desc">This feature requires a Pro plan.</p>
+    <div class="um-actions">
+      <a href="/pricing" class="um-upgrade-btn" id="um-btn">View Plans</a>
+      <button class="um-skip" onclick="document.getElementById('upgrade-modal').classList.remove('open')">Maybe Later</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Cooldown Overlay ── -->
+<div id="cooldown-overlay">
+  <div class="cd-card">
+    <div class="cd-icon">⏱️</div>
+    <h3 id="cd-title">Please wait</h3>
+    <p id="cd-desc">Your next generation will be ready in:</p>
+    <div class="cd-timer" id="cd-timer">0:00</div>
+    <div class="cd-upgrade"><a href="/pricing">Upgrade for shorter cooldowns</a></div>
+    <button class="cd-dismiss" onclick="document.getElementById('cooldown-overlay').classList.remove('open')">OK</button>
+  </div>
+</div>
 
 <!-- ─────── Three.js Scene ─────── -->
 <script type="module">
@@ -1067,6 +1321,7 @@ scene.add(led);
 
 // ── State ──
 let autoRotate = true;
+let _snapTargetY = null;
 let box = new THREE.Group();
 scene.add(box);
 
@@ -1110,12 +1365,96 @@ function panelFaceMat(tex) {
   });
 }
 
+// ── Rounded geometry helpers for fillet preview ──
+function _mkRoundedBoxGeo(w, h, d, r) {
+  if (!r || r < 0.001) return new THREE.BoxGeometry(w, h, d);
+  r = Math.min(r, w * 0.45, d * 0.45);
+  const s = new THREE.Shape();
+  const hw = w / 2, hd = d / 2;
+  s.moveTo(-hw + r, -hd);
+  s.lineTo(hw - r, -hd);
+  s.absarc(hw - r, -hd + r, r, -Math.PI / 2, 0, false);
+  s.lineTo(hw, hd - r);
+  s.absarc(hw - r, hd - r, r, 0, Math.PI / 2, false);
+  s.lineTo(-hw + r, hd);
+  s.absarc(-hw + r, hd - r, r, Math.PI / 2, Math.PI, false);
+  s.lineTo(-hw, -hd + r);
+  s.absarc(-hw + r, -hd + r, r, Math.PI, Math.PI * 1.5, false);
+  const geo = new THREE.ExtrudeGeometry(s, { depth: h, bevelEnabled: false });
+  geo.rotateX(-Math.PI / 2);
+  geo.translate(0, -h / 2, 0);
+  return geo;
+}
+
+function _mkRoundedRingGeo(outerW, outerD, innerW, innerD, h, r) {
+  r = r ? Math.min(r, outerW * 0.45, outerD * 0.45) : 0;
+  const oHW = outerW / 2, oHD = outerD / 2;
+  const iHW = innerW / 2, iHD = innerD / 2;
+  const outer = new THREE.Shape();
+  if (r > 0.001) {
+    outer.moveTo(-oHW + r, -oHD);
+    outer.lineTo(oHW - r, -oHD);
+    outer.absarc(oHW - r, -oHD + r, r, -Math.PI / 2, 0, false);
+    outer.lineTo(oHW, oHD - r);
+    outer.absarc(oHW - r, oHD - r, r, 0, Math.PI / 2, false);
+    outer.lineTo(-oHW + r, oHD);
+    outer.absarc(-oHW + r, oHD - r, r, Math.PI / 2, Math.PI, false);
+    outer.lineTo(-oHW, -oHD + r);
+    outer.absarc(-oHW + r, -oHD + r, r, Math.PI, Math.PI * 1.5, false);
+  } else {
+    outer.moveTo(-oHW, -oHD); outer.lineTo(oHW, -oHD);
+    outer.lineTo(oHW, oHD);   outer.lineTo(-oHW, oHD); outer.lineTo(-oHW, -oHD);
+  }
+  // Inner rectangular hole — opposite winding (CW) to act as cutout
+  const hole = new THREE.Path();
+  hole.moveTo(-iHW, -iHD); hole.lineTo(-iHW, iHD);
+  hole.lineTo(iHW, iHD);   hole.lineTo(iHW, -iHD); hole.lineTo(-iHW, -iHD);
+  outer.holes.push(hole);
+  const geo = new THREE.ExtrudeGeometry(outer, { depth: h, bevelEnabled: false });
+  geo.rotateX(-Math.PI / 2);
+  geo.translate(0, -h / 2, 0);
+  return geo;
+}
+
+function _getFilletR() {
+  if (!document.getElementById('chk-fillet')?.checked) return 0;
+  return (parseFloat(document.getElementById('fillet_r_disp')?.value) || 0) / 100;
+}
+function _getFilletHR() {
+  if (!document.getElementById('chk-fillet-rim')?.checked) return 0;
+  return _getFilletR();
+}
+function _rimMat() {
+  return new THREE.MeshStandardMaterial({ color: 0x5588d4, roughness: 0.4, metalness: 0.35 });
+}
+// Adds a hollow ring to `parent` with optional top/bottom rim fillet rendered in rimMat.
+function _addRingWithRim(parent, outerW, outerD, innerW, innerD, h, rv, rh, mainMat, rimMat) {
+  rh = rh ? Math.min(rh, h * 0.40, outerW * 0.45, outerD * 0.45) : 0;
+  if (!rh || rh < 0.001) {
+    parent.add(new THREE.Mesh(_mkRoundedRingGeo(outerW, outerD, innerW, innerD, h, rv), mainMat));
+    return;
+  }
+  const segs = 4, sliceH = rh / segs, mainH = h - 2 * rh;
+  if (mainH > 0.001)
+    parent.add(new THREE.Mesh(_mkRoundedRingGeo(outerW, outerD, innerW, innerD, mainH, rv), mainMat));
+  for (let i = 0; i < segs; i++) {
+    const t_t = (i + 1) / segs;
+    const ins_t = rh * (1 - Math.sqrt(Math.max(0, 1 - t_t * t_t)));
+    const tGeo = _mkRoundedRingGeo(Math.max(0.001, outerW-2*ins_t), Math.max(0.001, outerD-2*ins_t), innerW, innerD, sliceH, Math.max(0, rv-ins_t));
+    const tM = new THREE.Mesh(tGeo, rimMat); tM.position.y = h/2 - rh + (i+0.5)*sliceH; parent.add(tM);
+    const t_b = i / segs;
+    const ins_b = rh * (1 - Math.sqrt(Math.max(0, 1 - (1-t_b)*(1-t_b))));
+    const bGeo = _mkRoundedRingGeo(Math.max(0.001, outerW-2*ins_b), Math.max(0.001, outerD-2*ins_b), innerW, innerD, sliceH, Math.max(0, rv-ins_b));
+    const bM = new THREE.Mesh(bGeo, rimMat); bM.position.y = -h/2 + (i+0.5)*sliceH; parent.add(bM);
+  }
+}
+
 // ── Build Box ──
 function buildBox(pw, ph) {
   box.clear();
 
-  const pd  = pw;           // square footprint
-  const cw  = 0.10;         // column width
+  const pd  = pw;
+  const cw  = (parseFloat(document.getElementById('col_w')?.value) || 12) / 100;
   const pt  = 0.025;        // panel thickness
   const bt  = 0.040;        // base/top plate thickness
   const wh  = 0.072;        // tray/cap wall height
@@ -1163,40 +1502,31 @@ function buildBox(pw, ph) {
 
   const bw2 = pw + cw*2;
   const bd2 = pd + cw*2;
+  const fr  = _getFilletR();
+  const fhr = _getFilletHR();
+  const rimM = _rimMat();
 
-  // ── Base TRAY: floor plate + 4 walls rising up ──
+  // ── Base TRAY: floor plate + wall ring ──
   const baseFloorY = -(ph/2 + wh + bt/2);
   const baseWallY  = -(ph/2 + wh/2);
   const baseFloor  = new THREE.Mesh(new THREE.BoxGeometry(bw2, bt, bd2), fm);
   baseFloor.position.set(0, baseFloorY, 0);
   box.add(baseFloor);
-  [
-    { size:[bw2, wh, cw], pos:[0,           baseWallY,  bd2/2-cw/2] },
-    { size:[bw2, wh, cw], pos:[0,           baseWallY, -bd2/2+cw/2] },
-    { size:[cw,  wh, pd], pos:[-bw2/2+cw/2, baseWallY,  0]          },
-    { size:[cw,  wh, pd], pos:[ bw2/2-cw/2, baseWallY,  0]          },
-  ].forEach(({ size, pos }) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(...size), fm);
-    m.position.set(...pos);
-    box.add(m);
-  });
+  const baseWallsGrp = new THREE.Group(); baseWallsGrp.position.set(0, baseWallY, 0);
+  _addRingWithRim(baseWallsGrp, bw2, bd2, bw2-cw*2, bd2-cw*2, wh, fr, fhr, fm, rimM);
+  box.add(baseWallsGrp);
 
   const topWallY = ph/2 + wh/2;
   if (topback) {
     // ── Open top frame: wall ring only (no solid plate) + thin lip at very top ──
-    const lipH = 0.016;  // 2mm in scene units
-    [
-      { size:[bw2, wh-lipH, cw],   pos:[0,           topWallY - lipH/2,  bd2/2-cw/2] },
-      { size:[bw2, wh-lipH, cw],   pos:[0,           topWallY - lipH/2, -bd2/2+cw/2] },
-      { size:[cw,  wh-lipH, pd],   pos:[-bw2/2+cw/2, topWallY - lipH/2,  0]          },
-      { size:[cw,  wh-lipH, pd],   pos:[ bw2/2-cw/2, topWallY - lipH/2,  0]          },
-      // Lip strip (full ring, thinner)
-      { size:[bw2, lipH, bd2],     pos:[0, ph/2 + wh - lipH/2, 0] },
-    ].forEach(({ size, pos }) => {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(...size), fm);
-      m.position.set(...pos);
-      box.add(m);
-    });
+    const lipH = 0.016;
+    const topRingGrp = new THREE.Group(); topRingGrp.position.set(0, topWallY - lipH/2, 0);
+    _addRingWithRim(topRingGrp, bw2, bd2, bw2-cw*2, bd2-cw*2, wh-lipH, fr, fhr, fm, rimM);
+    box.add(topRingGrp);
+    // Lip strip
+    const lip = new THREE.Mesh(new THREE.BoxGeometry(bw2, lipH, bd2), fm);
+    lip.position.set(0, ph/2 + wh - lipH/2, 0);
+    box.add(lip);
 
     // Top lithophane panel: horizontal slab sitting in the opening
     const topPanY = ph/2 + wh - lipH - pt/2;
@@ -1216,21 +1546,14 @@ function buildBox(pw, ph) {
       box.add(topFace);
     }
   } else {
-    // ── Top CAP: solid plate + 4 walls hanging down ──
+    // ── Top CAP: solid plate + wall ring ──
     const topPlateY = ph/2 + wh + bt/2;
     const topPlate  = new THREE.Mesh(new THREE.BoxGeometry(bw2, bt, bd2), fm);
     topPlate.position.set(0, topPlateY, 0);
     box.add(topPlate);
-    [
-      { size:[bw2, wh, cw], pos:[0,           topWallY,  bd2/2-cw/2] },
-      { size:[bw2, wh, cw], pos:[0,           topWallY, -bd2/2+cw/2] },
-      { size:[cw,  wh, pd], pos:[-bw2/2+cw/2, topWallY,  0]          },
-      { size:[cw,  wh, pd], pos:[ bw2/2-cw/2, topWallY,  0]          },
-    ].forEach(({ size, pos }) => {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(...size), fm);
-      m.position.set(...pos);
-      box.add(m);
-    });
+    const capRingGrp = new THREE.Group(); capRingGrp.position.set(0, topWallY, 0);
+    _addRingWithRim(capRingGrp, bw2, bd2, bw2-cw*2, bd2-cw*2, wh, fr, fhr, fm, rimM);
+    box.add(capRingGrp);
   }
 
   // ── 4 Corner columns ──
@@ -1242,7 +1565,7 @@ function buildBox(pw, ph) {
     [-pw/2-cw/2, -pd/2-cw/2],
   ];
   corners.forEach(([cx, cz]) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(cw, colH, cw), fm);
+    const m = new THREE.Mesh(_mkRoundedBoxGeo(cw, colH, cw, fr), fm);
     m.position.set(cx, 0, cz);
     box.add(m);
   });
@@ -1278,7 +1601,9 @@ function buildAssemblyScene() {
   const ph = (parseFloat(document.getElementById('panel_h').value) || 100) / 100;
   const topback = (document.getElementById('panel_layout')?.value === 'topback');
 
-  const pd = pw, cw = 0.10, pt = 0.025, bt = 0.040, wh = 0.072;
+  const cw_input = (parseFloat(document.getElementById('col_w')?.value) || 12) / 100;
+  const pd = pw, cw = cw_input, pt = 0.025, bt = 0.040, wh = 0.072;
+  const fr = _getFilletR(), fhr = _getFilletHR(), rimM = _rimMat();
   const EXPLODE = ph * 2.2;
   const bw2 = pw + cw * 2, bd2 = pd + cw * 2;
 
@@ -1301,14 +1626,9 @@ function buildAssemblyScene() {
   baseFloor.position.y = -(ph / 2 + wh + bt / 2);
   baseG.add(baseFloor);
   const bwy = -(ph / 2 + wh / 2);
-  [
-    [[bw2, wh, cw], [0,          bwy,  bd2/2-cw/2]],
-    [[bw2, wh, cw], [0,          bwy, -bd2/2+cw/2]],
-    [[cw,  wh, pd], [-bw2/2+cw/2, bwy, 0]],
-    [[cw,  wh, pd], [ bw2/2-cw/2, bwy, 0]],
-  ].forEach(([s, p]) => {
-    const m = mk(new THREE.BoxGeometry(...s), fm()); m.position.set(...p); baseG.add(m);
-  });
+  const baseWallsGrp = new THREE.Group(); baseWallsGrp.position.y = bwy;
+  _addRingWithRim(baseWallsGrp, bw2, bd2, pw, pd, wh, fr, fhr, fm(), rimM);
+  baseG.add(baseWallsGrp);
   reg(baseG, 0, -EXPLODE, 300, 900, easeOutBack);
 
   // ── 4 corner columns (tinted, stagger) ──
@@ -1320,7 +1640,7 @@ function buildAssemblyScene() {
     [ pw/2+cw/2, -pd/2-cw/2],
     [-pw/2-cw/2, -pd/2-cw/2],
   ].forEach(([cx, cz], i) => {
-    const col = mk(new THREE.BoxGeometry(cw, colH, cw),
+    const col = mk(_mkRoundedBoxGeo(cw, colH, cw, fr),
       new THREE.MeshStandardMaterial({ color: colColors[i], roughness: 0.4, metalness: 0.2,
         emissive: colColors[i], emissiveIntensity: 0.18 }));
     col.position.x = cx; col.position.z = cz;
@@ -1345,19 +1665,22 @@ function buildAssemblyScene() {
     reg(panel, pos[1], EXPLODE, 2750 + i * 280, 750, easeOutCubic);
   });
 
+  // ── Back service plate (topback mode only) ──
+  if (topback) {
+    const backMat = new THREE.MeshStandardMaterial({ color: 0x1e1e35, roughness: 0.6, metalness: 0.2 });
+    const backPlate = mk(new THREE.BoxGeometry(pw, ph, pt * 1.2), backMat);
+    backPlate.position.z = -(pd / 2 + pt * 0.6);
+    reg(backPlate, 0, EXPLODE, 3700, 700, easeOutCubic);
+  }
+
   // ── Top frame ──
   const topG = new THREE.Group();
   const twy = ph/2 + wh/2, tply = ph/2 + wh + bt/2;
   const topPlate = mk(new THREE.BoxGeometry(bw2, bt, bd2), fm(0x3a3a60));
   topPlate.position.y = tply; topG.add(topPlate);
-  [
-    [[bw2, wh, cw], [0,          twy,  bd2/2-cw/2]],
-    [[bw2, wh, cw], [0,          twy, -bd2/2+cw/2]],
-    [[cw,  wh, pd], [-bw2/2+cw/2, twy, 0]],
-    [[cw,  wh, pd], [ bw2/2-cw/2, twy, 0]],
-  ].forEach(([s, p]) => {
-    const m = mk(new THREE.BoxGeometry(...s), fm(0x3a3a60)); m.position.set(...p); topG.add(m);
-  });
+  const topWallsGrp = new THREE.Group(); topWallsGrp.position.y = twy;
+  _addRingWithRim(topWallsGrp, bw2, bd2, pw, pd, wh, fr, fhr, fm(0x3a3a60), rimM);
+  topG.add(topWallsGrp);
   reg(topG, 0, EXPLODE, 4500, 900, easeOutBack);
 }
 
@@ -1379,7 +1702,15 @@ function animate() {
       box.rotation.y += 0.004;
     }
   } else {
-    if (autoRotate) box.rotation.y += 0.003;
+    if (_snapTargetY !== null) {
+      let delta = _snapTargetY - box.rotation.y;
+      // Shortest path through ±π
+      delta = ((delta % (2*Math.PI)) + 3*Math.PI) % (2*Math.PI) - Math.PI;
+      if (Math.abs(delta) < 0.006) { box.rotation.y += delta; _snapTargetY = null; }
+      else { box.rotation.y += delta * 0.10; }
+    } else if (autoRotate) {
+      box.rotation.y += 0.003;
+    }
   }
 
   renderer.render(scene, camera);
@@ -1495,6 +1826,13 @@ window._three = {
     buildBox(pw, ph);
     this.setCamera(pw, ph);
   },
+
+  snapPanelToFront(panel) {
+    const targets = { front: 0, left: Math.PI / 2, right: -Math.PI / 2, back: Math.PI };
+    if (!(panel in targets) || assemblyMode) return;
+    autoRotate = false;
+    _snapTargetY = targets[panel];
+  },
 };
 </script>
 
@@ -1514,14 +1852,18 @@ let _currentLayout = '4panel';   // '4panel' | 'topback'
 function switchTab(tab) {
   document.getElementById('tab-preview').classList.toggle('active',  tab === 'preview');
   document.getElementById('tab-assembly').classList.toggle('active', tab === 'assembly');
+  document.getElementById('tab-flat').classList.toggle('active',     tab === 'flat');
   document.getElementById('previewHint').style.display  = tab === 'preview'  ? '' : 'none';
   document.getElementById('assemblyHint').style.display = tab === 'assembly' ? 'block' : 'none';
+  document.getElementById('canvasWrap').style.display   = tab === 'flat' ? 'none' : '';
+  document.getElementById('flatWrap').style.display     = tab === 'flat' ? '' : 'none';
   const lbls = document.querySelector('.canvas-labels');
   if (lbls) lbls.style.display = tab === 'preview' ? '' : 'none';
   if (window._three) {
     if (tab === 'assembly') window._three.startAssembly();
     else                    window._three.stopAssembly();
   }
+  if (tab === 'flat') { _initFlatCanvas(); _drawFlatPreview(); }
 }
 
 function setLayout(mode) {
@@ -1540,6 +1882,8 @@ function setLayout(mode) {
   document.getElementById('ps-back').style.display     = topback ? 'none' : '';
   document.getElementById('ps-top').style.display      = topback ? '' : 'none';
   document.getElementById('ps-backplate').style.display = topback ? '' : 'none';
+  const bsStep = document.getElementById('ps-back-svc');
+  if (bsStep) bsStep.style.display = topback ? '' : 'none';
 
   // Switch hole card (top frame) hidden in topback mode
   document.getElementById('card-switch-top').style.display = topback ? 'none' : '';
@@ -1552,10 +1896,16 @@ function setLayout(mode) {
   // 3D preview
   if (window._three) window._three.setLayoutMode();
 
+  if (document.getElementById('chk-frame-only').checked) {
+    _rebuildPartOptions();
+    onPartSelectChange();
+  }
   updateImgCount();
+  updatePartsCount();
 }
 
 function triggerUpload(side) {
+  if (window._three) window._three.snapPanelToFront(side);
   document.getElementById('img_' + side).click();
 }
 
@@ -1609,6 +1959,15 @@ function onImagePick(input, side) {
     compressImage(file, 1500, 0.88).then(({ blob, nw, nh }) => {
       _compressedBlobs[side] = blob;
       if (window._three) window._three.loadTex(side, url, nw, nh);
+      // Draw flat preview when front image loads
+      if (side === 'front') {
+        // Wait for bg-front img to have natural dimensions
+        const bg = document.getElementById('bg-front');
+        const draw = () => {
+          if (document.getElementById('flatWrap')?.style.display !== 'none') _drawFlatPreview();
+        };
+        bg.complete ? draw() : (bg.onload = draw);
+      }
     }).catch(() => {
       // Compression failed — fall back to raw file at submit time
       _compressedBlobs[side] = file;
@@ -1626,9 +1985,39 @@ function updateImgCount() {
   ).length;
   document.getElementById('img-count-badge').textContent = count + ' / 4';
   document.getElementById('dbgCount').textContent = count;
+  const frameOnly = document.getElementById('chk-frame-only').checked;
   const btn = document.getElementById('genBtn');
-  btn.style.opacity = count === 0 ? '0.45' : '1';
-  btn.style.cursor  = count === 0 ? 'not-allowed' : 'pointer';
+  btn.style.opacity = (!frameOnly && count === 0) ? '0.45' : '1';
+  btn.style.cursor  = (!frameOnly && count === 0) ? 'not-allowed' : 'pointer';
+  updatePartsCount(count);
+}
+
+function updatePartsCount(imgCount) {
+  const topback   = (_currentLayout === 'topback');
+  const frameOnly = document.getElementById('chk-frame-only').checked;
+  const imageOnly = document.getElementById('chk-image-only').checked;
+  // Structural: base(1) + 4 columns + top_frame(1) + back_plate(1 in topback)
+  const structural = (frameOnly || !imageOnly) ? (6 + (topback ? 1 : 0)) : 0;
+  const panels = frameOnly ? 0 : (imgCount !== undefined ? imgCount : (() => {
+    const sides = topback ? ['front','top','left','right'] : ['front','back','left','right'];
+    return sides.filter(s => document.getElementById('zone-'+s)?.classList.contains('filled')).length;
+  })());
+  const el = document.getElementById('d-parts');
+  if (el) el.textContent = (imageOnly ? 0 : structural) + panels;
+}
+
+function onFilletChange() {
+  const checked = document.getElementById('chk-fillet').checked;
+  const rimChecked = checked && document.getElementById('chk-fillet-rim').checked;
+  document.getElementById('fillet-inputs').style.display = checked ? '' : 'none';
+  document.getElementById('fillet-off-hint').style.display = checked ? 'none' : '';
+  document.getElementById('fillet_r').value = checked ? document.getElementById('fillet_r_disp').value : '0';
+  document.getElementById('fillet_h_r').value = rimChecked ? document.getElementById('fillet_r_disp').value : '0';
+  if (window._three) {
+    const pw = (parseFloat(document.getElementById('panel_w').value) || 100) / 100;
+    const ph = (parseFloat(document.getElementById('panel_h').value) || 100) / 100;
+    window._three.buildBox(pw, ph);
+  }
 }
 
 function onSettingsChange() {
@@ -1636,9 +2025,14 @@ function onSettingsChange() {
   const ph = (parseFloat(document.getElementById('panel_h').value)||100)/100;
   const cw = parseFloat(document.getElementById('col_w').value)||12;
 
+  // Update fillet recommendation based on col_w
+  const rec = Math.round(Math.min(cw * 0.15, 2.5) * 2) / 2;
+  const hint = document.getElementById('fillet-hint');
+  if (hint) hint.textContent = 'mm · Recommended: ' + rec + ' mm';
+
   // Dimensions display
   const bw = Math.round(pw*100 + cw*2);
-  const bh = Math.round(ph*100 + 11);
+  const bh = Math.round(ph*100 + 25);
   document.getElementById('d-w').textContent = bw;
   document.getElementById('d-d').textContent = bw;
   document.getElementById('d-h').textContent = bh;
@@ -1703,7 +2097,23 @@ function onOffset(side, axis, val) {
   const v = parseInt(val);
   document.getElementById((axis==='x'?'oxv':'oyv') + '-' + side).textContent = v;
   document.getElementById((axis==='x'?'ox':'oy') + '-' + side + '-val').value = v;
+  // Sync thumbnail crop position
+  _syncThumbPos(side);
+  // Update 3D texture
   if (window._three) window._three.updateOffset(side);
+  // Refresh flat preview if on that tab
+  if (side === 'front' && document.getElementById('flatWrap')?.style.display !== 'none')
+    _drawFlatPreview();
+}
+
+function _syncThumbPos(side) {
+  const ox = parseInt(document.getElementById('ox-'+side)?.value || 0);
+  const oy = parseInt(document.getElementById('oy-'+side)?.value || 0);
+  // Convert -100..100 → object-position 0%..100%
+  const pctX = 50 + ox / 2;
+  const pctY = 50 - oy / 2;   // Y inverted: pos Y shifts up → lower portion visible
+  const bg = document.getElementById('bg-' + side);
+  if (bg) bg.style.objectPosition = pctX + '% ' + pctY + '%';
 }
 
 function setLight(pos) {
@@ -1714,14 +2124,15 @@ function setLight(pos) {
 
 // Step label → step-list item ID mapping
 const _stepMap = [
-  ['column',  'ps-col'],
-  ['base',    'ps-base'],
-  ['frame',   'ps-frame'],
-  ['panel 1', 'ps-p1'],
-  ['panel 2', 'ps-p2'],
-  ['panel 3', 'ps-p3'],
-  ['panel 4', 'ps-p4'],
-  ['zip',     'ps-zip'],
+  ['column',       'ps-col'],
+  ['base',         'ps-base'],
+  ['frame',        'ps-frame'],
+  ['back service', 'ps-back-svc'],
+  ['panel 1',      'ps-p1'],
+  ['panel 2',      'ps-p2'],
+  ['panel 3',      'ps-p3'],
+  ['panel 4',      'ps-p4'],
+  ['zip',          'ps-zip'],
 ];
 
 function _updateStepList(stepText, pct) {
@@ -1749,7 +2160,137 @@ function _hideUnusedPanelRows(uploadedCount) {
   }
 }
 
+function _rebuildPartOptions() {
+  const topback = (_currentLayout === 'topback');
+  const sel = document.getElementById('part-select');
+  const prev = sel.value;
+
+  // Build options list from scratch — CSS display:none on <option> is unreliable cross-browser
+  const opts = [
+    { value: 'all',       label: 'All frame parts (ZIP)' },
+    { value: 'base',      label: 'Base frame (bottom tray)' },
+    { value: 'col_fl_br', label: 'Column FL + BR (×2 prints)' },
+    { value: 'col_fr_bl', label: 'Column FR + BL (×2 prints)' },
+    ...(topback
+      ? [{ value: 'open_top_frame', label: 'Top frame (ring)' },
+         { value: 'back_plate',     label: 'Back panel (solid)' }]
+      : [{ value: 'top_frame',      label: 'Top frame (cap)' }]
+    ),
+  ];
+
+  sel.innerHTML = opts.map(o =>
+    `<option value="${o.value}"${o.value === prev ? ' selected' : ''}>${o.label}</option>`
+  ).join('');
+
+  // If previous selection no longer exists in this mode, fall back to 'all'
+  if (!opts.find(o => o.value === prev)) sel.value = 'all';
+}
+
+function onPartSelectChange() {
+  const val = document.getElementById('part-select').value;
+  const labels = {
+    all:            'Download All Frame Parts (ZIP)',
+    base:           'Download Base Frame',
+    col_fl_br:      'Download Column FL+BR',
+    col_fr_bl:      'Download Column FR+BL',
+    top_frame:      'Download Top Frame',
+    open_top_frame: 'Download Top Frame (ring)',
+    back_plate:     'Download Back Panel',
+  };
+  document.getElementById('genBtnLabel').innerHTML = labels[val] || 'Download';
+}
+
+function onFrameOnlyChange() {
+  const frameOnly = document.getElementById('chk-frame-only').checked;
+  if (frameOnly) {
+    document.getElementById('chk-image-only').checked = false;
+  }
+  document.getElementById('part-selector-wrap').style.display = frameOnly ? '' : 'none';
+  if (frameOnly) {
+    _rebuildPartOptions();
+    onPartSelectChange();
+  } else {
+    document.getElementById('genBtnLabel').innerHTML = 'Generate STL Files &amp; Download ZIP';
+  }
+  // In frame-only: dim all zones except front (front kept for image preview)
+  document.querySelectorAll('.upload-zone').forEach(z => {
+    const isFront = z.dataset.side === 'front';
+    z.style.opacity      = (frameOnly && !isFront) ? '0.35' : '';
+    z.style.pointerEvents = (frameOnly && !isFront) ? 'none' : '';
+  });
+  updateImgCount();
+  updatePartsCount();
+}
+
+function onImageOnlyChange() {
+  const imageOnly = document.getElementById('chk-image-only').checked;
+  if (imageOnly) {
+    // Mutually exclusive with frame-only
+    document.getElementById('chk-frame-only').checked = false;
+    document.getElementById('part-selector-wrap').style.display = 'none';
+    document.getElementById('genBtnLabel').innerHTML = 'Generate Panel STLs &amp; Download ZIP';
+    // Re-enable all upload zones
+    document.querySelectorAll('.upload-zone').forEach(z => {
+      z.style.opacity = '';
+      z.style.pointerEvents = '';
+    });
+  } else {
+    document.getElementById('genBtnLabel').innerHTML = 'Generate STL Files &amp; Download ZIP';
+  }
+  updateImgCount();
+  updatePartsCount();
+}
+
+async function _downloadSinglePart(part, wrap, txt, spin, msg, btn) {
+  const partLabels = {
+    base:           'base_plate',
+    col_fl_br:      'column_fl_br_x2',
+    col_fr_bl:      'column_fr_bl_x2',
+    top_frame:      'top_frame',
+    open_top_frame: 'top_frame',
+    back_plate:     'back_plate',
+  };
+  const filename = (partLabels[part] || part) + '.stl';
+
+  wrap.className = 'progress-wrap visible';
+  txt.className  = 'progress-text';
+  spin.style.display = 'block';
+  msg.textContent = 'Generating ' + filename + '…';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  try {
+    const formData = new FormData(document.getElementById('mainForm'));
+    formData.set('part', part);
+
+    const resp = await fetch(API_BASE + '/generate-part', { method: 'POST', body: formData });
+    if (!resp.ok) {
+      let errText = 'Server error ' + resp.status;
+      try { const j = await resp.json(); errText = j.error || errText; } catch (_) {}
+      throw new Error(errText);
+    }
+    const blob = await resp.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = filename; a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 2000);
+    txt.className  = 'progress-text success';
+    spin.style.display = 'none';
+    msg.innerHTML  = '✅ ' + filename + ' downloaded. '
+      + '<a href="' + url + '" download="' + filename + '" style="color:var(--success);font-weight:700;text-decoration:underline">tap here if it didn\'t start ↓</a>';
+  } catch (e) {
+    txt.className  = 'progress-text error';
+    spin.style.display = 'none';
+    msg.textContent = '✗ ' + e.message;
+  } finally {
+    btn.disabled = false;
+    updateImgCount();
+  }
+}
+
 async function doGenerate() {
+  const frameOnly = document.getElementById('chk-frame-only').checked;
   const sides = (_currentLayout === 'topback')
     ? ['front','top','left','right']
     : ['front','back','left','right'];
@@ -1765,12 +2306,26 @@ async function doGenerate() {
   const stepEl = document.getElementById('progStep');
   const pctEl  = document.getElementById('progPct');
 
-  if (uploaded.length === 0) {
+  if (!frameOnly && uploaded.length === 0) {
     wrap.className = 'progress-wrap visible';
     txt.className = 'progress-text error';
     spin.style.display = 'none';
     msg.textContent = '✗ Upload at least 1 panel image first';
     return;
+  }
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  btn.style.opacity = '0.45';
+  btn.style.cursor = 'not-allowed';
+
+  // Single-part download path (frame-only + specific part selected)
+  if (frameOnly) {
+    const partVal = document.getElementById('part-select')?.value || 'all';
+    if (partVal !== 'all') {
+      await _downloadSinglePart(partVal, wrap, txt, spin, msg, btn);
+      return;
+    }
   }
 
   // Reset UI
@@ -1798,11 +2353,16 @@ async function doGenerate() {
     } else {
       formData.delete('img_top');
     }
+    if (frameOnly) formData.set('frame_only', '1');
+    const imageOnly = document.getElementById('chk-image-only').checked;
+    if (imageOnly) formData.set('image_only', '1');
 
     const resp = await fetch(API_BASE + '/generate', { method: 'POST', body: formData });
     const data = await resp.json();
 
     if (!resp.ok) {
+      btn.disabled = false;
+      updateImgCount();
       txt.className = 'progress-text error';
       spin.style.display = 'none';
       msg.textContent = '✗ ' + (data.error || 'Server error');
@@ -1823,6 +2383,8 @@ async function doGenerate() {
 
         if (s.done) {
           clearInterval(poll);
+          btn.disabled = false;
+          updateImgCount();
           spin.style.display = 'none';
           document.querySelectorAll('.prog-step-item').forEach(el => {
             if (el.style.display !== 'none') el.className = 'prog-step-item done';
@@ -1842,6 +2404,20 @@ async function doGenerate() {
               + '" download="lithophane_lightbox.zip" '
               + 'style="color:var(--success);font-weight:700;text-decoration:underline">'
               + 'tap here ↓</a>';
+            // Pro: show individual part download links
+            if (window.TIER_RANK >= 2 && s.files && s.files.length) {
+              const uid = dlUrl.replace(/.*\/dl\//, '');
+              let html = '<div style="margin-top:12px;padding:12px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);border-radius:8px">';
+              html += '<div style="font-size:11px;color:#a080ff;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">⚡ Pro: Download individual files</div>';
+              html += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
+              s.files.filter(f=>f.endsWith('.stl')).forEach(f => {
+                html += '<a href="/dl/' + uid + '/' + encodeURIComponent(f) + '" download="' + f + '" '
+                  + 'style="padding:4px 10px;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);border-radius:6px;color:#c0a0ff;font-size:11px;text-decoration:none;font-weight:600">'
+                  + f + '</a>';
+              });
+              html += '</div></div>';
+              msg.innerHTML += html;
+            }
           } else {
             txt.className = 'progress-text error';
             msg.textContent = '✗ ' + (s.error || 'Unknown error').split('\n')[0];
@@ -1849,6 +2425,8 @@ async function doGenerate() {
         }
       } catch (pollErr) {
         clearInterval(poll);
+        btn.disabled = false;
+        updateImgCount();
         txt.className = 'progress-text error';
         spin.style.display = 'none';
         msg.textContent = '✗ Lost connection — ' + pollErr.message;
@@ -1856,10 +2434,120 @@ async function doGenerate() {
     }, 1500);
 
   } catch (err) {
+    btn.disabled = false;
+    updateImgCount();
     txt.className = 'progress-text error';
     spin.style.display = 'none';
     msg.textContent = '✗ Network error: ' + err.message;
   }
+}
+
+// ── Flat 2D Image Preview ──────────────────────────────────────────────────────
+function _initFlatCanvas() {
+  const wrap = document.getElementById('flatWrap');
+  const canvas = document.getElementById('flatCanvas');
+  if (!wrap || !canvas) return;
+  canvas.width  = wrap.clientWidth  || 400;
+  canvas.height = wrap.clientHeight || 400;
+}
+
+function _drawFlatPreview() {
+  const canvas = document.getElementById('flatCanvas');
+  if (!canvas) return;
+  const W = canvas.width || canvas.offsetWidth;
+  const H = canvas.height || canvas.offsetHeight;
+  if (!W || !H) return;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  // Panel dimensions
+  const pw = parseFloat(document.getElementById('panel_w')?.value) || 100;
+  const ph = parseFloat(document.getElementById('panel_h')?.value) || 100;
+  const panelAR = pw / ph;
+
+  // Fit panel into canvas with 10% padding
+  const pad = 0.1;
+  let pW, pH;
+  if (panelAR > (W / H)) {
+    pW = W * (1 - pad * 2);
+    pH = pW / panelAR;
+  } else {
+    pH = H * (1 - pad * 2);
+    pW = pH * panelAR;
+  }
+  const px = (W - pW) / 2, py = (H - pH) / 2;
+
+  // Background
+  ctx.fillStyle = '#0e0b1e';
+  ctx.fillRect(0, 0, W, H);
+
+  const bg = document.getElementById('bg-front');
+  const hasFront = document.getElementById('zone-front')?.classList.contains('filled');
+
+  if (hasFront && bg && bg.naturalWidth && bg.naturalHeight) {
+    const imgW = bg.naturalWidth, imgH = bg.naturalHeight;
+    const imgAR = imgW / imgH;
+    const ox = parseInt(document.getElementById('ox-front')?.value || 0) / 100;
+    const oy = parseInt(document.getElementById('oy-front')?.value || 0) / 100;
+
+    // Compute source crop rect (cover-fit)
+    let sx, sy, sw, sh;
+    if (imgAR >= panelAR) {
+      // fit height, crop width
+      sh = imgH;
+      sw = imgH * panelAR;
+      const maxShift = imgW - sw;
+      sx = maxShift / 2 + ox * maxShift / 2;
+      sy = 0;
+    } else {
+      // fit width, crop height
+      sw = imgW;
+      sh = imgW / panelAR;
+      const maxShift = imgH - sh;
+      sy = maxShift / 2 - oy * maxShift / 2;  // oy positive = move up = show lower
+      sx = 0;
+    }
+
+    // Draw image into panel rect
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(px, py, pW, pH);
+    ctx.clip();
+    ctx.drawImage(bg, sx, sy, sw, sh, px, py, pW, pH);
+    ctx.restore();
+
+    // Subtle vignette on panel
+    const vg = ctx.createRadialGradient(px+pW/2, py+pH/2, pW*0.25, px+pW/2, py+pH/2, pW*0.75);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.35)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(px, py, pW, pH);
+  } else {
+    // No image — draw placeholder
+    ctx.fillStyle = '#17132e';
+    ctx.fillRect(px, py, pW, pH);
+    ctx.strokeStyle = 'rgba(123,104,255,0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(px + 0.75, py + 0.75, pW - 1.5, pH - 1.5);
+    ctx.fillStyle = 'rgba(123,104,255,0.5)';
+    ctx.font = '13px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Upload front image to preview', W / 2, H / 2);
+  }
+
+  // Panel border overlay
+  ctx.strokeStyle = 'rgba(255,107,107,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(px + 0.75, py + 0.75, pW - 1.5, pH - 1.5);
+
+  // Panel size label
+  ctx.fillStyle = 'rgba(255,107,107,0.7)';
+  ctx.font = '11px -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(pw + ' × ' + ph + ' mm', px + 6, py + 6);
 }
 
 // Init — zero out any inputs whose controlling checkbox is unchecked on load
@@ -1871,6 +2559,165 @@ toggleBackWire();
 toggleBackSwitch();
 toggleBackCable();
 onSettingsChange();
+
+// ── Mobile banner ──
+function dismissMobileBanner() {
+  document.getElementById('mobile-banner').style.display = 'none';
+  try { localStorage.setItem('litho_mb_dismissed', '1'); } catch(e) {}
+}
+(function() {
+  const isMobile = window.innerWidth < 900 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  const dismissed = (() => { try { return localStorage.getItem('litho_mb_dismissed'); } catch(e) { return null; } })();
+  if (isMobile && !dismissed) {
+    document.getElementById('mobile-banner').style.display = 'flex';
+  }
+})();
+
+// ── Subscription / tier UI ──────────────────────────────────────────────────
+(async function initTierUI() {
+  let meData = null;
+  try {
+    const r = await fetch('/me');
+    if (r.ok) meData = await r.json();
+  } catch(e) {}
+
+  if (!meData) return;
+
+  const rank  = meData.tier_rank || 0;
+  const tier  = meData.tier || 'anonymous';
+  const limit = meData.daily_limit;
+  const used  = meData.gens_today || 0;
+  const cd    = meData.cooldown_secs || 0;
+  const cdTotal = meData.cooldown_total || 180;
+
+  // ── Gen limit info bar ──
+  const bar      = document.getElementById('gen-limit-bar');
+  const limitTxt = document.getElementById('gen-limit-text');
+  const cdTxt    = document.getElementById('gen-cd-text');
+  const upLink   = document.getElementById('gen-upgrade-link');
+
+  if (bar) {
+    bar.style.display = 'flex';
+    if (limit !== null) {
+      const rem = Math.max(0, limit - used);
+      limitTxt.textContent = rem > 0
+        ? `${rem} of ${limit} generations left today`
+        : `Daily limit reached (${limit}/day)`;
+      if (rem === 0) bar.classList.add('limit-hit');
+      upLink.style.display = rank < 2 ? 'inline' : 'none';
+    } else {
+      limitTxt.textContent = 'Unlimited generations';
+    }
+    if (cd > 0) {
+      cdTxt.textContent = `⏱ Cooldown: ${_fmtSecs(cd)}`;
+    }
+  }
+
+  // ── Pro-lock overlays ──
+  // Format: [field-container-selector, required-rank, upgrade-label, plan-label]
+  const lockDefs = [
+    ['#opt-topback',       1, 'Plus', 'plus_monthly', 'Top Panel layout requires Plus or Pro'],
+    ['#panel-size-card',   1, 'Plus', 'plus_monthly', 'Custom panel size requires Plus or Pro'],
+    ['#res-field',         1, 'Plus', 'plus_monthly', 'Custom resolution requires Plus or Pro'],
+    ['#light-source-field',1, 'Plus', 'plus_monthly', 'Top light source requires Plus or Pro'],
+    ['#col-w-field',       1, 'Plus', 'plus_monthly', 'Custom column width requires Plus or Pro'],
+    ['#fit-tol-field',     1, 'Plus', 'plus_monthly', 'Custom fit tolerance requires Plus or Pro'],
+    ['#frame-only-row',    1, 'Plus', 'plus_monthly', 'Frame-only mode requires Plus or Pro'],
+    ['#image-only-row',   1, 'Plus', 'plus_monthly', 'Image panels only requires Plus or Pro'],
+    ['#hole-options-card', 2, 'Pro',  'pro_monthly',  'Hole cutouts are a Pro feature'],
+    ['#card-switch-top',   2, 'Pro',  'pro_monthly',  'Switch holes are a Pro feature'],
+    ['#fillet-field',      2, 'Pro',  'pro_monthly',  'Corner fillet is a Pro feature'],
+    ['#part-selector-wrap',2, 'Pro',  'pro_monthly',  'Per-part download is a Pro feature'],
+  ];
+
+  lockDefs.forEach(([sel, reqRank, planLabel, planKey, desc]) => {
+    if (rank >= reqRank) return;
+    const el = document.querySelector(sel);
+    if (!el) return;
+    // Wrap in lock div
+    const wrap = document.createElement('div');
+    wrap.className = 'pro-lock-wrap';
+    wrap.style.cssText = 'position:relative';
+    el.parentNode.insertBefore(wrap, el);
+    wrap.appendChild(el);
+    const badge = document.createElement('div');
+    badge.className = 'pro-lock-badge';
+    badge.textContent = `🔒 ${planLabel}`;
+    wrap.appendChild(badge);
+    wrap.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showUpgradeModal(planLabel, planKey, desc);
+    });
+  });
+
+  // ── Cooldown on generate click ──
+  const origGenerate = window.doGenerate;
+  if (typeof origGenerate === 'function') {
+    window.doGenerate = async function() {
+      // Re-check live cooldown
+      try {
+        const r = await fetch('/me');
+        if (r.ok) {
+          const d = await r.json();
+          if (d.cooldown_secs > 0) {
+            showCooldownOverlay(d.cooldown_secs, d.cooldown_total, d.tier);
+            return;
+          }
+          if (d.daily_limit !== null && d.gens_today >= d.daily_limit) {
+            showUpgradeModal(
+              d.tier === 'free' || d.tier === 'anonymous' ? 'Plus' : 'Pro',
+              d.tier === 'free' || d.tier === 'anonymous' ? 'plus_monthly' : 'pro_monthly',
+              `You've used all ${d.daily_limit} generations today. Upgrade for more.`
+            );
+            return;
+          }
+        }
+      } catch(e) {}
+      return origGenerate.apply(this, arguments);
+    };
+  }
+})();
+
+function _fmtSecs(s) {
+  const m = Math.floor(s / 60), sec = s % 60;
+  return `${m}:${String(sec).padStart(2,'0')}`;
+}
+
+function showUpgradeModal(planLabel, planKey, desc) {
+  const modal = document.getElementById('upgrade-modal');
+  const isPlus = planKey && planKey.startsWith('plus');
+  document.getElementById('um-icon').textContent  = isPlus ? '✦' : '⚡';
+  document.getElementById('um-title').textContent = `${planLabel} Feature`;
+  document.getElementById('um-desc').textContent  = desc || `Upgrade to ${planLabel} to use this feature.`;
+  document.getElementById('um-btn').textContent   = `View ${planLabel} Plans`;
+  document.getElementById('um-btn').href          = '/pricing';
+  modal.classList.add('open');
+}
+
+let _cdInterval = null;
+function showCooldownOverlay(secsLeft, total, tier) {
+  const overlay = document.getElementById('cooldown-overlay');
+  const timerEl = document.getElementById('cd-timer');
+  const descEl  = document.getElementById('cd-desc');
+  const tierLabels = {free:'Free (3 min)', anonymous:'Free (3 min)', plus:'Plus (2 min)', pro:'Pro (none)'};
+  descEl.textContent = `Next generation ready in: (${tierLabels[tier] || tier} cooldown)`;
+  let rem = secsLeft;
+  timerEl.textContent = _fmtSecs(rem);
+  overlay.classList.add('open');
+  if (_cdInterval) clearInterval(_cdInterval);
+  _cdInterval = setInterval(() => {
+    rem--;
+    if (rem <= 0) {
+      clearInterval(_cdInterval); _cdInterval = null;
+      overlay.classList.remove('open');
+      // Update limit bar
+      const cdTxt = document.getElementById('gen-cd-text');
+      if (cdTxt) cdTxt.textContent = '';
+    } else {
+      timerEl.textContent = _fmtSecs(rem);
+    }
+  }, 1000);
+}
 </script>
 </body>
 </html>

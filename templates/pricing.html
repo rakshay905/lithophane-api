@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pricing — Lithophane Studio</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0b1a;color:#e0d4ff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid rgba(130,100,255,.15);background:#100d20}
+.nav-logo{font-size:16px;font-weight:700;color:#c0b0f0;text-decoration:none}
+.nav-links{display:flex;gap:16px;align-items:center}
+.nav-link{color:#9080c0;text-decoration:none;font-size:13px}
+.nav-link:hover{color:#e0d4ff}
+.nav-cta{background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:7px 16px;border-radius:8px;color:#fff!important;font-size:13px;font-weight:600}
+/* Hero */
+.hero{text-align:center;padding:52px 20px 20px}
+.hero h1{font-size:32px;font-weight:800;background:linear-gradient(135deg,#c084fc,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:#9080bb;font-size:15px;margin-top:10px}
+/* Billing toggle */
+.toggle-wrap{display:flex;align-items:center;justify-content:center;gap:12px;margin:28px 0}
+.toggle-label{font-size:13px;color:#9080bb}
+.toggle-label.active{color:#e0d4ff;font-weight:600}
+.save-badge{background:rgba(80,220,120,.15);border:1px solid rgba(80,220,120,.3);color:#70e090;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+.toggle-btn{position:relative;width:46px;height:24px;background:#2a2050;border-radius:12px;cursor:pointer;border:1px solid rgba(130,100,255,.3);transition:background .2s}
+.toggle-btn.on{background:#7c3aed}
+.toggle-btn::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle-btn.on::after{transform:translateX(22px)}
+/* Cards */
+.cards{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;padding:0 20px 60px;max-width:1000px;margin:0 auto}
+.card{background:#15122a;border:1px solid rgba(130,100,255,.2);border-radius:16px;padding:28px 24px;width:100%;max-width:295px;display:flex;flex-direction:column}
+.card.recommended{border-color:#7c3aed;box-shadow:0 0 0 1px #7c3aed,0 0 32px rgba(124,58,237,.2)}
+.card-badge{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;height:18px}
+.card-badge.pop{color:#c084fc}
+.card-name{font-size:18px;font-weight:700;margin-bottom:4px}
+.card-price{font-size:34px;font-weight:800;margin:12px 0 4px}
+.card-price span{font-size:16px;color:#9080bb;font-weight:400}
+.card-cycle{font-size:12px;color:#7060a0;margin-bottom:18px;min-height:18px}
+.card-features{list-style:none;flex:1;margin-bottom:20px}
+.card-features li{font-size:13px;color:#b0a0d8;padding:6px 0;border-bottom:1px solid rgba(130,100,255,.08);display:flex;gap:8px;align-items:flex-start}
+.card-features li:last-child{border-bottom:none}
+.feat-check{color:#a080ff;flex-shrink:0;margin-top:1px}
+.feat-x{color:#504070;flex-shrink:0;margin-top:1px}
+.card-btn{width:100%;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:.3px;transition:opacity .2s}
+.card-btn.current{background:#1e1a3a;color:#7060a0;cursor:default;border:1px solid rgba(130,100,255,.2)}
+.card-btn.upgrade{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff}
+.card-btn.upgrade:hover{opacity:.85}
+.card-btn.pro{background:linear-gradient(135deg,#a855f7,#6d28d9);color:#fff}
+.card-btn.pro:hover{opacity:.85}
+/* Verified banner */
+.verified-banner{background:rgba(80,220,120,.1);border:1px solid rgba(80,220,120,.25);border-radius:10px;padding:12px 20px;text-align:center;font-size:13px;color:#70e090;max-width:480px;margin:0 auto 20px}
+/* Footer note */
+.note{text-align:center;font-size:12px;color:#5a5080;padding-bottom:40px}
+.note a{color:#7060a8}
+</style>
+</head>
+<body>
+{% if announcement %}
+<div id="announce-bar" style="background:linear-gradient(90deg,#7c3aed 0%,#4f46e5 100%);color:#fff;text-align:center;padding:10px 48px;font-size:13px;font-weight:600;position:relative;line-height:1.4">
+  {{ announcement }}
+  <button onclick="document.getElementById('announce-bar').style.display='none'" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.8);font-size:20px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+</div>
+{% endif %}
+<nav>
+  <a href="/" class="nav-logo">🔦 Lithophane Studio</a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Generator</a>
+    {% if current_user %}
+      <a href="/dashboard" class="nav-link">Dashboard</a>
+      <a href="/logout" class="nav-link">Logout</a>
+    {% else %}
+      <a href="/login" class="nav-link nav-cta">Login</a>
+    {% endif %}
+  </div>
+</nav>
+
+{% if request.args.get('verified') %}
+<div style="max-width:600px;margin:20px auto 0;padding:0 20px">
+  <div class="verified-banner">✅ Email verified! Choose a plan to unlock more features, or keep using the free tier.</div>
+</div>
+{% endif %}
+
+<div class="hero">
+  <h1>Simple, transparent pricing</h1>
+  <p>Start free — upgrade when you need more power</p>
+</div>
+
+<div class="toggle-wrap">
+  <span class="toggle-label active" id="lbl-monthly">Monthly</span>
+  <div class="toggle-btn" id="billing-toggle" onclick="toggleBilling(this)"></div>
+  <span class="toggle-label" id="lbl-yearly">Yearly <span class="save-badge">Save ~30%</span></span>
+</div>
+
+<div class="cards">
+
+  <!-- Free -->
+  <div class="card">
+    <div class="card-badge"></div>
+    <div class="card-name">Free</div>
+    <div class="card-price">₹0<span>/forever</span></div>
+    <div class="card-cycle">No credit card required</div>
+    <ul class="card-features">
+      <li><span class="feat-check">✓</span> 3 generations / day</li>
+      <li><span class="feat-check">✓</span> 3 min cooldown between gens</li>
+      <li><span class="feat-check">✓</span> 4 panels (Front/Back/Left/Right)</li>
+      <li><span class="feat-check">✓</span> Fixed 100×100 mm size</li>
+      <li><span class="feat-check">✓</span> Standard resolution (3 px/mm)</li>
+      <li><span class="feat-check">✓</span> Image position offset</li>
+      <li><span class="feat-x">✗</span> Custom panel size</li>
+      <li><span class="feat-x">✗</span> Top panel (Top+3 layout)</li>
+      <li><span class="feat-x">✗</span> Corner fillet / rounded edges</li>
+      <li><span class="feat-x">✗</span> Per-part STL download</li>
+    </ul>
+    {% if not current_user %}
+      <a href="/signup"><button class="card-btn upgrade">Get Started Free</button></a>
+    {% elif user_tier == 'free' %}
+      <button class="card-btn current">Current Plan</button>
+    {% else %}
+      <button class="card-btn current">Included</button>
+    {% endif %}
+  </div>
+
+  <!-- Plus -->
+  <div class="card">
+    <div class="card-badge pop">Popular</div>
+    <div class="card-name" style="color:#c084fc">Plus</div>
+    <div class="card-price" id="plus-price">₹99<span>/month</span></div>
+    <div class="card-cycle" id="plus-cycle">Billed monthly · Cancel anytime</div>
+    <ul class="card-features">
+      <li><span class="feat-check" style="color:#c084fc">✓</span> 20 generations / day</li>
+      <li><span class="feat-check" style="color:#c084fc">✓</span> 2 min cooldown between gens</li>
+      <li><span class="feat-check" style="color:#c084fc">✓</span> All Free features</li>
+      <li><span class="feat-check" style="color:#c084fc">✓</span> Custom panel size (40–300 mm)</li>
+      <li><span class="feat-check" style="color:#c084fc">✓</span> Top Panel layout</li>
+      <li><span class="feat-check" style="color:#c084fc">✓</span> All resolutions (2–5 px/mm)</li>
+      <li><span class="feat-check" style="color:#c084fc">✓</span> Top or Bottom light</li>
+      <li><span class="feat-check" style="color:#c084fc">✓</span> Custom column width &amp; tolerance</li>
+      <li><span class="feat-check" style="color:#c084fc">✓</span> Frame-only mode (ZIP)</li>
+      <li><span class="feat-x">✗</span> Holes / switch cutouts</li>
+      <li><span class="feat-x">✗</span> Corner fillet / rounded edges</li>
+      <li><span class="feat-x">✗</span> Per-part STL download</li>
+    </ul>
+    {% if not current_user %}
+      <button class="card-btn upgrade" id="btn-plus" onclick="startCheckout('plus')">Upgrade to Plus</button>
+    {% elif user_tier in ('free', 'anonymous') %}
+      <button class="card-btn upgrade" id="btn-plus" onclick="startCheckout('plus')">Upgrade to Plus</button>
+    {% elif 'plus' in user_tier %}
+      <button class="card-btn current">Current Plan</button>
+    {% else %}
+      <button class="card-btn current">Included in Pro</button>
+    {% endif %}
+  </div>
+
+  <!-- Pro -->
+  <div class="card recommended">
+    <div class="card-badge pop">Best Value</div>
+    <div class="card-name" style="color:#a855f7">Pro</div>
+    <div class="card-price" id="pro-price">₹199<span>/month</span></div>
+    <div class="card-cycle" id="pro-cycle">Billed monthly · Cancel anytime</div>
+    <ul class="card-features">
+      <li><span class="feat-check" style="color:#a855f7">✓</span> Unlimited generations</li>
+      <li><span class="feat-check" style="color:#a855f7">✓</span> No cooldown</li>
+      <li><span class="feat-check" style="color:#a855f7">✓</span> All Plus features</li>
+      <li><span class="feat-check" style="color:#a855f7">✓</span> Light / switch / cable holes</li>
+      <li><span class="feat-check" style="color:#a855f7">✓</span> Corner fillet + rim rounding</li>
+      <li><span class="feat-check" style="color:#a855f7">✓</span> Top+3 back-plate options</li>
+      <li><span class="feat-check" style="color:#a855f7">✓</span> Per-part STL download</li>
+      <li><span class="feat-check" style="color:#a855f7">✓</span> Assembly animation</li>
+      <li><span class="feat-check" style="color:#a855f7">✓</span> Priority support</li>
+    </ul>
+    {% if not current_user %}
+      <button class="card-btn pro" id="btn-pro" onclick="startCheckout('pro')">Upgrade to Pro</button>
+    {% elif user_tier in ('free', 'anonymous') %}
+      <button class="card-btn pro" id="btn-pro" onclick="startCheckout('pro')">Upgrade to Pro</button>
+    {% elif 'plus' in user_tier %}
+      <button class="card-btn pro" id="btn-pro" onclick="startCheckout('pro')">Upgrade to Pro</button>
+    {% else %}
+      <button class="card-btn current">Current Plan ✓</button>
+    {% endif %}
+  </div>
+
+</div>
+
+<p class="note">Secure payments by Razorpay · Prices in INR · Subscriptions auto-renew · <a href="/dashboard">Manage / Cancel</a></p>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+let billingYearly = false;
+const PLUS_PRICES  = {monthly: '₹99/month',  yearly: '₹799/year'};
+const PRO_PRICES   = {monthly: '₹199/month', yearly: '₹1,799/year'};
+const PLUS_CYCLES  = {monthly: 'Billed monthly · Cancel anytime', yearly: 'Billed yearly (save ₹389)'};
+const PRO_CYCLES   = {monthly: 'Billed monthly · Cancel anytime', yearly: 'Billed yearly (save ₹589)'};
+
+function toggleBilling(el) {
+  billingYearly = !billingYearly;
+  el.classList.toggle('on', billingYearly);
+  document.getElementById('lbl-monthly').classList.toggle('active', !billingYearly);
+  document.getElementById('lbl-yearly').classList.toggle('active',  billingYearly);
+  const b = billingYearly ? 'yearly' : 'monthly';
+  document.getElementById('plus-price').innerHTML = `₹${billingYearly?'799':'99'}<span>/${billingYearly?'year':'month'}</span>`;
+  document.getElementById('pro-price').innerHTML  = `₹${billingYearly?'1,799':'199'}<span>/${billingYearly?'year':'month'}</span>`;
+  document.getElementById('plus-cycle').textContent = PLUS_CYCLES[b];
+  document.getElementById('pro-cycle').textContent  = PRO_CYCLES[b];
+}
+
+async function startCheckout(tier) {
+  {% if not current_user %}
+  window.location.href = '/login?next=/pricing';
+  return;
+  {% endif %}
+  const plan = tier + '_' + (billingYearly ? 'yearly' : 'monthly');
+  const btn  = document.getElementById('btn-' + tier);
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+  try {
+    const r = await fetch('/create-subscription', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({plan}),
+    });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error || 'Server error');
+    const rzp = new Razorpay({
+      key:             d.key,
+      subscription_id: d.subscription_id,
+      name:            'Lithophane Studio',
+      description:     plan.replace('_', ' ').replace('_', '/'),
+      theme:           {color: '#7c3aed'},
+      handler: async function(resp) {
+        const vr = await fetch('/verify-payment', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({...resp, plan}),
+        });
+        const vd = await vr.json();
+        if (vd.status === 'ok') {
+          window.location.href = '/dashboard?upgraded=1';
+        } else {
+          alert('Payment received but activation failed. Contact support.');
+        }
+      },
+      modal: {
+        ondismiss: () => {
+          if (btn) { btn.disabled = false; btn.textContent = 'Upgrade to ' + (tier === 'pro' ? 'Pro' : 'Plus'); }
+        }
+      }
+    });
+    rzp.open();
+  } catch(e) {
+    alert('Error: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Upgrade to ' + (tier === 'pro' ? 'Pro' : 'Plus'); }
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lithophane Keychain Generator</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #080810; --surface: #10101c; --card: #13131f; --card2: #16162a;
+  --border: #23233a; --border2: #2e2e48;
+  --accent: #7b68ff; --accent2: #ff6fa3; --accent3: #38d9a9;
+  --text: #e4e4f0; --text2: #9898b0; --text3: #5a5a78;
+  --success: #38d9a9; --warn: #ffd060; --err: #ff5f7e;
+  --glow: 0 0 24px rgba(123,104,255,0.18);
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; line-height: 1.5; }
+
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(8,8,16,0.85); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px; height: 64px;
+  display: flex; align-items: center; gap: 14px;
+}
+.header-logo {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, #ffd060 0%, #ff6fa3 100%);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0; box-shadow: 0 0 16px rgba(255,208,96,0.35);
+}
+.header-title { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+.header-sub   { font-size: 12px; color: var(--text2); margin-top: 1px; }
+.nav-links { margin-left: auto; display: flex; gap: 8px; }
+.nav-link {
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  text-decoration: none; color: var(--text2);
+  border: 1px solid var(--border); transition: all 0.2s;
+}
+.nav-link:hover { color: var(--text); border-color: var(--accent); }
+.nav-link.active { background: rgba(123,104,255,0.15); color: var(--accent); border-color: var(--accent); }
+
+.app { display: grid; grid-template-columns: 1fr 380px; gap: 0; max-width: 1100px; margin: 0 auto; min-height: calc(100vh - 64px); }
+.left  { padding: 28px 24px 48px 28px; display: flex; flex-direction: column; gap: 16px; }
+.right { border-left: 1px solid var(--border); padding: 24px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.card-head {
+  padding: 14px 18px 13px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600; color: var(--text2);
+  text-transform: uppercase; letter-spacing: 0.6px;
+}
+.card-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+
+.upload-zone {
+  border: 2px dashed var(--border2); border-radius: 10px; padding: 24px 16px;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: rgba(123,104,255,0.06); }
+.upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-icon { font-size: 26px; margin-bottom: 5px; }
+.upload-label { font-size: 13px; font-weight: 600; color: var(--text2); }
+.upload-hint  { font-size: 11px; color: var(--text3); margin-top: 3px; }
+.upload-preview { width: 100%; max-height: 150px; object-fit: contain; border-radius: 6px; display: none; }
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+label { font-size: 12px; color: var(--text2); font-weight: 500; display: block; margin-bottom: 6px; }
+.val  { color: var(--accent); font-weight: 700; }
+
+input[type=range] {
+  width: 100%; height: 4px; -webkit-appearance: none; appearance: none;
+  background: var(--border2); border-radius: 2px; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent); cursor: pointer; box-shadow: 0 0 6px rgba(123,104,255,0.5);
+}
+
+/* Shape selector grid */
+.shape-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.shape-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 10px 4px; border-radius: 10px; cursor: pointer;
+  border: 2px solid var(--border2); background: transparent; color: var(--text2);
+  font-size: 10px; font-weight: 600; transition: all 0.15s;
+}
+.shape-btn:hover { border-color: var(--accent); color: var(--text); }
+.shape-btn.active { border-color: var(--accent); background: rgba(123,104,255,0.12); color: var(--accent); }
+.shape-btn svg { width: 32px; height: 32px; }
+
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px; border-radius: 10px; font-size: 14px; font-weight: 700;
+  cursor: pointer; border: none; transition: all 0.2s; width: 100%;
+}
+.btn-primary { background: linear-gradient(135deg, var(--accent), #5a4fe0); color: #fff; box-shadow: var(--glow); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 32px rgba(123,104,255,0.35); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-dl { background: rgba(56,217,169,0.12); border: 1px solid rgba(56,217,169,0.3); color: var(--success); }
+.btn-dl:hover { background: rgba(56,217,169,0.2); }
+
+.progress-wrap { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.progress-bar-bg { height: 6px; background: var(--border2); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+.progress-bar    { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; transition: width 0.4s; width: 0; }
+.progress-step   { font-size: 12px; color: var(--text2); min-height: 18px; }
+.progress-pct    { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+.info-box { background: rgba(123,104,255,0.08); border: 1px solid rgba(123,104,255,0.2); border-radius: 8px; padding: 12px 14px; font-size: 12px; color: var(--text2); line-height: 1.6; }
+.info-box strong { color: var(--text); }
+
+.preview-box {
+  background: var(--card2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px; display: flex; align-items: center; justify-content: center; min-height: 220px;
+}
+#previewSvg { max-width: 100%; max-height: 250px; }
+
+@media (max-width: 720px) {
+  .app { grid-template-columns: 1fr; }
+  .right { border-left: none; border-top: 1px solid var(--border); }
+  .shape-grid { grid-template-columns: repeat(4, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logo">🔑</div>
+  <div>
+    <div class="header-title">Keychain Generator</div>
+    <div class="header-sub">Custom lithophane keychain · STL output</div>
+  </div>
+  <nav class="nav-links">
+    <a href="/" class="nav-link">💡 Light Box</a>
+    <a href="/frame" class="nav-link">🖼️ Photo Frame</a>
+    <a href="/keychain" class="nav-link active">🔑 Keychain</a>
+  </nav>
+</header>
+
+<div class="app">
+  <div class="left">
+
+    <div class="card">
+      <div class="card-head">📷 Image</div>
+      <div class="card-body">
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('imgInput').click()">
+          <input type="file" id="imgInput" accept="image/*" onchange="onImageChange(this)">
+          <div id="uploadPlaceholder">
+            <div class="upload-icon">🔑</div>
+            <div class="upload-label">Click or drag image here</div>
+            <div class="upload-hint">JPEG · PNG · WEBP · up to 10 MB</div>
+          </div>
+          <img id="previewImg" class="upload-preview" alt="preview">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">🔷 Shape</div>
+      <div class="card-body">
+        <div class="shape-grid">
+
+          <button class="shape-btn active" onclick="setShape('rectangle', this)" title="Rectangle">
+            <svg viewBox="0 0 32 32"><rect x="4" y="7" width="24" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            Rect
+          </button>
+
+          <button class="shape-btn" onclick="setShape('circle', this)" title="Circle">
+            <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            Circle
+          </button>
+
+          <button class="shape-btn" onclick="setShape('oval', this)" title="Oval">
+            <svg viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="12" ry="9" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            Oval
+          </button>
+
+          <button class="shape-btn" onclick="setShape('heart', this)" title="Heart">
+            <svg viewBox="0 0 32 32"><path d="M16,26 C7,19 4,14 4,10 C4,6.5 7,4 10,4 C12,4 14,5.5 16,8 C18,5.5 20,4 22,4 C25,4 28,6.5 28,10 C28,14 25,19 16,26Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            Heart
+          </button>
+
+          <button class="shape-btn" onclick="setShape('star', this)" title="Star">
+            <svg viewBox="0 0 32 32"><polygon points="16,4 18.6,12.3 27.4,12.3 20.4,17.5 23,25.8 16,20.6 9,25.8 11.6,17.5 4.6,12.3 13.4,12.3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            Star
+          </button>
+
+          <button class="shape-btn" onclick="setShape('diamond', this)" title="Diamond">
+            <svg viewBox="0 0 32 32"><polygon points="16,3 29,16 16,29 3,16" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            Diamond
+          </button>
+
+          <button class="shape-btn" onclick="setShape('hexagon', this)" title="Hexagon">
+            <svg viewBox="0 0 32 32"><polygon points="16,4 27,10 27,22 16,28 5,22 5,10" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            Hexagon
+          </button>
+
+          <button class="shape-btn" onclick="setShape('shield', this)" title="Shield">
+            <svg viewBox="0 0 32 32"><path d="M16,4 L27,10 L27,19 L16,28 L5,19 L5,10 Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            Shield
+          </button>
+
+          <button class="shape-btn" onclick="setShape('teardrop', this)" title="Teardrop">
+            <svg viewBox="0 0 32 32"><path d="M5,14 A11,11 0 1 1 27,14 L16,28 Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            Teardrop
+          </button>
+
+          <button class="shape-btn" onclick="setShape('arch', this)" title="Arch">
+            <svg viewBox="0 0 32 32"><path d="M5,26 L5,14 A11,11 0 0 1 27,14 L27,26 Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            Arch
+          </button>
+
+          <button class="shape-btn" onclick="setShape('tag', this)" title="Tag">
+            <svg viewBox="0 0 32 32">
+              <path d="M7,28 L7,9 Q7,6 10,6 L22,6 Q25,6 25,9 L25,28 L16,23 L7,28Z" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="16" cy="8.5" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            Tag
+          </button>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">📐 Size</div>
+      <div class="card-body">
+        <div class="row2">
+          <div>
+            <label>Width: <span class="val" id="vW">50</span> mm</label>
+            <input type="range" id="sW" min="25" max="100" value="50" oninput="sync('W')">
+          </div>
+          <div>
+            <label>Height: <span class="val" id="vH">65</span> mm</label>
+            <input type="range" id="sH" min="25" max="120" value="65" oninput="sync('H')">
+          </div>
+        </div>
+        <div>
+          <label>Border width: <span class="val" id="vBorder">4</span> mm</label>
+          <input type="range" id="sBorder" min="2" max="12" value="4" oninput="sync('Border')">
+        </div>
+        <div>
+          <label>Keyring hole diameter: <span class="val" id="vHole">4.5</span> mm
+            <span style="font-size:10px;color:var(--text3)">(0 = no hole)</span>
+          </label>
+          <input type="range" id="sHole" min="0" max="100" value="45" oninput="syncHole()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">🔧 Lithophane</div>
+      <div class="card-body">
+        <div class="row2">
+          <div>
+            <label>Min thickness: <span class="val" id="vMinT">0.8</span> mm</label>
+            <input type="range" id="sMinT" min="4" max="15" value="8" oninput="syncThick('MinT')">
+          </div>
+          <div>
+            <label>Max thickness: <span class="val" id="vMaxT">3.0</span> mm</label>
+            <input type="range" id="sMaxT" min="20" max="50" value="30" oninput="syncThick('MaxT')">
+          </div>
+        </div>
+        <div>
+          <label>Resolution: <span class="val" id="vRes">2</span> px/mm
+            <span style="font-size:10px;color:var(--text3)">(2=fast · 3=detail · 4=fine)</span>
+          </label>
+          <input type="range" id="sRes" min="2" max="4" value="2" step="1" oninput="sync('Res')">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="right">
+
+    <div class="preview-box">
+      <svg id="previewSvg" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
+        <text x="100" y="130" text-anchor="middle" fill="#3a3a58" font-size="12" font-family="sans-serif">Shape preview</text>
+      </svg>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap" style="display:none">
+      <div class="progress-step" id="progressStep">Starting…</div>
+      <div class="progress-pct"  id="progressPct">0%</div>
+      <div class="progress-bar-bg"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+
+    <button class="btn btn-primary" id="genBtn" onclick="doGenerate()">✨ Generate Keychain</button>
+
+    <div id="dlWrap" style="display:none">
+      <button class="btn btn-dl" onclick="window.location.href=dlUrl">⬇️ Download Keychain ZIP</button>
+    </div>
+
+    <div class="info-box">
+      <strong>Print settings:</strong><br>
+      · Filament: translucent white PETG or PLA<br>
+      · Layer height: 0.1–0.15 mm<br>
+      · Walls: 2–3 · Infill: 100% (solid)<br>
+      · Orientation: flat, litho side facing up<br>
+      · Supports: none needed<br><br>
+      <strong>Usage:</strong> hold to a light / backlit phone to see the lithophane image.
+    </div>
+
+  </div>
+</div>
+
+<script>
+let dlUrl = '';
+let selectedShape = 'rectangle';
+let pollTimer = null;
+
+function sync(id) {
+  const v = document.getElementById('s'+id).value;
+  document.getElementById('v'+id).textContent = v;
+  updatePreview();
+}
+
+function syncThick(id) {
+  const raw = document.getElementById('s'+id).value;
+  document.getElementById('v'+id).textContent = (parseFloat(raw)/10).toFixed(1);
+}
+
+function syncHole() {
+  const raw = parseFloat(document.getElementById('sHole').value);
+  document.getElementById('vHole').textContent = (raw/10).toFixed(1);
+}
+
+function setShape(s, btn) {
+  selectedShape = s;
+  document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updatePreview();
+}
+
+function onImageChange(inp) {
+  if (!inp.files[0]) return;
+  const img = document.getElementById('previewImg');
+  img.src = URL.createObjectURL(inp.files[0]);
+  img.style.display = 'block';
+  document.getElementById('uploadPlaceholder').style.display = 'none';
+}
+
+function updatePreview() {
+  const w  = parseFloat(document.getElementById('sW').value);
+  const h  = parseFloat(document.getElementById('sH').value);
+  const b  = parseFloat(document.getElementById('sBorder').value);
+  const hd = parseFloat(document.getElementById('sHole').value) / 10;
+
+  // Leave room for keyring tab above the shape
+  const tabH_mm = hd > 0.5 ? (hd + 5) : 0;
+  const total_h  = h + tabH_mm;
+  const sx  = Math.min(180 / w, 230 / total_h);
+  const pw  = w * sx, ph = h * sx;
+  const tabH_px = tabH_mm * sx;
+  const ox  = (200 - pw) / 2;
+  const oy  = (260 - ph - tabH_px) / 2 + tabH_px;  // shape y (tab is above)
+  const bs  = b * sx;
+  const cx  = ox + pw / 2, cy = oy + ph / 2;
+  const hr  = (hd / 2) * sx;
+
+  let outerPath = '', innerPath = '';
+  if (selectedShape === 'oval') {
+    outerPath = `<ellipse cx="${cx}" cy="${cy}" rx="${pw/2}" ry="${ph/2}" fill="#1a1a2e" stroke="#7b68ff" stroke-width="1.5"/>`;
+    innerPath = `<ellipse cx="${cx}" cy="${cy}" rx="${pw/2-bs}" ry="${ph/2-bs}" fill="#0a0a14" stroke="#38d9a9" stroke-width="0.8" stroke-dasharray="3 2"/>`;
+  } else if (selectedShape === 'circle') {
+    const r = Math.min(pw/2, ph/2);
+    outerPath = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#1a1a2e" stroke="#7b68ff" stroke-width="1.5"/>`;
+    innerPath = `<circle cx="${cx}" cy="${cy}" r="${r-bs}" fill="#0a0a14" stroke="#38d9a9" stroke-width="0.8" stroke-dasharray="3 2"/>`;
+  } else if (selectedShape === 'heart') {
+    outerPath = heartSvg(ox, oy, pw, ph, 1.5);
+    innerPath = heartSvg(ox+bs, oy+bs, pw-2*bs, ph-2*bs, 0.8, '#38d9a9', '3 2');
+  } else if (selectedShape === 'star') {
+    outerPath = starSvg(cx, cy, pw/2, ph/2, 1.5);
+    innerPath = starSvg(cx, cy, pw/2-bs, ph/2-bs, 0.8, '#38d9a9', '3 2');
+  } else if (selectedShape === 'diamond') {
+    outerPath = diamondSvg(cx, cy, pw/2, ph/2, 1.5);
+    innerPath = diamondSvg(cx, cy, pw/2-bs, ph/2-bs, 0.8, '#38d9a9', '3 2');
+  } else if (selectedShape === 'hexagon') {
+    outerPath = hexSvg(cx, cy, pw/2, ph/2, 1.5);
+    innerPath = hexSvg(cx, cy, pw/2-bs, ph/2-bs, 0.8, '#38d9a9', '3 2');
+  } else if (selectedShape === 'shield') {
+    outerPath = shieldSvg(ox, oy, pw, ph, 1.5);
+    innerPath = shieldSvg(ox+bs, oy+bs, pw-2*bs, ph-2*bs, 0.8, '#38d9a9', '3 2');
+  } else if (selectedShape === 'teardrop') {
+    outerPath = teardropSvg(ox, oy, pw, ph, 1.5);
+    innerPath = teardropSvg(ox+bs, oy+bs, pw-2*bs, ph-2*bs, 0.8, '#38d9a9', '3 2');
+  } else if (selectedShape === 'arch') {
+    outerPath = archSvg(ox, oy, pw, ph, 1.5);
+    innerPath = archSvg(ox+bs, oy+bs, pw-2*bs, ph-2*bs, 0.8, '#38d9a9', '3 2');
+  } else if (selectedShape === 'tag') {
+    outerPath = tagSvg(ox, oy, pw, ph, 1.5);
+    innerPath = tagSvg(ox+bs, oy+bs, pw-2*bs, ph-2*bs, 0.8, '#38d9a9', '3 2');
+  } else {
+    const rc = Math.min(4*sx, pw*0.1, ph*0.1);
+    outerPath = `<rect x="${ox}" y="${oy}" width="${pw}" height="${ph}" rx="${rc}" fill="#1a1a2e" stroke="#7b68ff" stroke-width="1.5"/>`;
+    innerPath = `<rect x="${ox+bs}" y="${oy+bs}" width="${pw-2*bs}" height="${ph-2*bs}" rx="${Math.max(0,rc-bs)}" fill="#0a0a14" stroke="#38d9a9" stroke-width="0.8" stroke-dasharray="3 2"/>`;
+  }
+
+  // Tab + hole ABOVE the shape
+  let tabSvgEl = '', holeSvgEl = '';
+  if (hd > 0.5) {
+    const tabW_px = Math.max(hd*2.5, 10) * sx;
+    const tx = cx - tabW_px/2;
+    const ty = oy - tabH_px;
+    tabSvgEl  = `<rect x="${tx}" y="${ty}" width="${tabW_px}" height="${tabH_px}" rx="2" fill="#1d1d30" stroke="#ffd060" stroke-width="1"/>`;
+    holeSvgEl = `<circle cx="${cx}" cy="${ty + tabH_px/2}" r="${hr}" fill="#080810" stroke="#ffd060" stroke-width="1"/>`;
+  }
+
+  document.getElementById('previewSvg').innerHTML =
+    outerPath + innerPath + tabSvgEl + holeSvgEl +
+    `<text x="100" y="${oy+ph+14}" text-anchor="middle" fill="#5a5a78" font-size="9" font-family="sans-serif">${w.toFixed(0)} × ${h.toFixed(0)} mm</text>`;
+}
+
+function heartSvg(x, y, w, h, sw=1.5, stroke='#7b68ff', sd='none') {
+  const cx = x+w/2;
+  const p = `M${cx},${y+h} C${x},${y+h*0.62} ${x},${y+h*0.4} ${x+w*0.12},${y+h*0.22}
+    C${x+w*0.25},${y+h*0.06} ${cx-w*0.12},${y+h*0.28} ${cx},${y+h*0.28}
+    C${cx+w*0.12},${y+h*0.28} ${x+w*0.75},${y+h*0.06} ${x+w*0.88},${y+h*0.22}
+    C${x+w},${y+h*0.4} ${x+w},${y+h*0.62} ${cx},${y+h}Z`;
+  const fill = sw>1 ? '#1a1a2e' : '#0a0a14';
+  const da = sd==='none' ? '' : `stroke-dasharray="${sd}"`;
+  return `<path d="${p}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${da}/>`;
+}
+
+function starSvg(cx, cy, rx, ry, sw=1.5, stroke='#7b68ff', sd='none') {
+  const pts = Array.from({length:10},(_,i)=>{
+    const a = (90+36*i)*Math.PI/180;
+    const r = i%2===0 ? 1 : 0.45;
+    return `${cx+rx*r*Math.cos(a)},${cy-ry*r*Math.sin(a)}`;
+  }).join(' ');
+  const fill = sw>1 ? '#1a1a2e' : '#0a0a14';
+  const da = sd==='none' ? '' : `stroke-dasharray="${sd}"`;
+  return `<polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${da}/>`;
+}
+
+function diamondSvg(cx, cy, hw, hh, sw=1.5, stroke='#7b68ff', sd='none') {
+  const pts = `${cx-hw},${cy} ${cx},${cy-hh} ${cx+hw},${cy} ${cx},${cy+hh}`;
+  const fill = sw>1 ? '#1a1a2e' : '#0a0a14';
+  const da = sd==='none' ? '' : `stroke-dasharray="${sd}"`;
+  return `<polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${da}/>`;
+}
+
+function teardropSvg(x, y, w, h, sw=1.5, stroke='#7b68ff', sd='none') {
+  const cx = x+w/2, r = w/2;
+  const arcY = y + r;
+  const p = `M${x},${arcY} A${r},${r} 0 1 1 ${x+w},${arcY} L${cx},${y+h} Z`;
+  const fill = sw>1 ? '#1a1a2e' : '#0a0a14';
+  const da = sd==='none' ? '' : `stroke-dasharray="${sd}"`;
+  return `<path d="${p}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${da}/>`;
+}
+
+function archSvg(x, y, w, h, sw=1.5, stroke='#7b68ff', sd='none') {
+  const cx = x+w/2, r = w/2;
+  const arcY = y + r;
+  const p = `M${x},${y+h} L${x},${arcY} A${r},${r} 0 0 1 ${x+w},${arcY} L${x+w},${y+h} Z`;
+  const fill = sw>1 ? '#1a1a2e' : '#0a0a14';
+  const da = sd==='none' ? '' : `stroke-dasharray="${sd}"`;
+  return `<path d="${p}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${da}/>`;
+}
+
+function hexSvg(cx, cy, rx, ry, sw=1.5, stroke='#7b68ff', sd='none') {
+  const pts = Array.from({length:6},(_,i)=>{
+    const a = (30+60*i)*Math.PI/180;
+    return `${cx+rx*Math.cos(a)},${cy+ry*Math.sin(a)}`;
+  }).join(' ');
+  const fill = sw > 1 ? '#1a1a2e' : '#0a0a14';
+  const da = sd==='none' ? '' : `stroke-dasharray="${sd}"`;
+  return `<polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${da}/>`;
+}
+
+function shieldSvg(x, y, w, h, sw=1.5, stroke='#7b68ff', sd='none') {
+  const p = `M${x+w/2},${y} L${x+w},${y+h*0.42} L${x+w},${y+h*0.55} L${x+w/2},${y+h} L${x},${y+h*0.55} L${x},${y+h*0.42} Z`;
+  const fill = sw > 1 ? '#1a1a2e' : '#0a0a14';
+  const da = sd==='none' ? '' : `stroke-dasharray="${sd}"`;
+  return `<path d="${p}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${da}/>`;
+}
+
+function tagSvg(x, y, w, h, sw=1.5, stroke='#7b68ff', sd='none') {
+  const r = Math.min(w*0.12, h*0.08, 4);
+  const nh = Math.min(h*0.15, 8), nw = Math.min(w*0.18, 6);
+  const p = `M${x+r},${y+h} Q${x},${y+h} ${x},${y+h-r} L${x},${y+r} Q${x},${y} ${x+r},${y}
+    L${x+w/2-nw},${y} L${x+w/2-nw},${y+nh} Q${x+w/2},${y+nh+nw} ${x+w/2+nw},${y+nh}
+    L${x+w/2+nw},${y} L${x+w-r},${y} Q${x+w},${y} ${x+w},${y+r}
+    L${x+w},${y+h-r} Q${x+w},${y+h} ${x+w-r},${y+h} Z`;
+  const fill = sw > 1 ? '#1a1a2e' : '#0a0a14';
+  const da = sd==='none' ? '' : `stroke-dasharray="${sd}"`;
+  return `<path d="${p}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" ${da}/>`;
+}
+
+function doGenerate() {
+  const imgInput = document.getElementById('imgInput');
+  if (!imgInput.files[0]) { alert('Please upload an image first.'); return; }
+
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  document.getElementById('dlWrap').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'block';
+  setProgress('⚙️ Uploading…', 2);
+
+  const fd = new FormData();
+  fd.append('image',      imgInput.files[0]);
+  fd.append('shape',      selectedShape);
+  fd.append('width_mm',   document.getElementById('sW').value);
+  fd.append('height_mm',  document.getElementById('sH').value);
+  fd.append('border_mm',  document.getElementById('sBorder').value);
+  fd.append('min_thick',  (parseFloat(document.getElementById('sMinT').value)/10).toFixed(1));
+  fd.append('max_thick',  (parseFloat(document.getElementById('sMaxT').value)/10).toFixed(1));
+  fd.append('resolution', document.getElementById('sRes').value);
+  fd.append('hole_d',     (parseFloat(document.getElementById('sHole').value)/10).toFixed(1));
+
+  fetch('/generate-keychain', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) { showError(d.error); return; }
+      pollStatus(d.job);
+    })
+    .catch(e => showError(e.toString()));
+}
+
+function pollStatus(job) {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(() => {
+    fetch('/status/' + job)
+      .then(r => r.json())
+      .then(d => {
+        setProgress(d.step || '', d.pct || 0);
+        if (d.done) {
+          clearInterval(pollTimer);
+          dlUrl = d.url;
+          document.getElementById('dlWrap').style.display = 'block';
+          document.getElementById('genBtn').disabled = false;
+        }
+        if (d.error) { clearInterval(pollTimer); showError(d.error); }
+      });
+  }, 900);
+}
+
+function setProgress(step, pct) {
+  document.getElementById('progressStep').textContent = step;
+  document.getElementById('progressPct').textContent  = pct + '%';
+  document.getElementById('progressBar').style.width  = pct + '%';
+}
+
+function showError(msg) {
+  document.getElementById('progressStep').textContent = '❌ ' + msg;
+  document.getElementById('genBtn').disabled = false;
+}
+
+updatePreview();
+</script>
+</body>
+</html>

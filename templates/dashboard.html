@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard — Lithophane Studio</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0b1a;color:#e0d4ff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid rgba(130,100,255,.15);background:#100d20}
+.nav-logo{font-size:16px;font-weight:700;color:#c0b0f0;text-decoration:none}
+.nav-links{display:flex;gap:16px;align-items:center}
+.nav-link{color:#9080c0;text-decoration:none;font-size:13px}
+.nav-link:hover{color:#e0d4ff}
+.page{max-width:720px;margin:0 auto;padding:36px 20px}
+h1{font-size:22px;font-weight:700;margin-bottom:24px}
+/* Cards */
+.card{background:#15122a;border:1px solid rgba(130,100,255,.2);border-radius:14px;padding:22px 24px;margin-bottom:18px}
+.card h2{font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:#7060a0;margin-bottom:14px}
+/* Plan section */
+.plan-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.plan-badge{font-size:22px;font-weight:800}
+.plan-badge.free{color:#8080a0}
+.plan-badge.plus{color:#c084fc}
+.plan-badge.pro{color:#a855f7}
+.plan-meta{color:#9080bb;font-size:13px;line-height:1.6}
+.plan-actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-block;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:opacity .2s}
+.btn-upgrade{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff}
+.btn-upgrade:hover{opacity:.85}
+.btn-cancel{background:rgba(200,50,50,.15);border:1px solid rgba(200,50,50,.3);color:#f08080}
+.btn-cancel:hover{background:rgba(200,50,50,.25)}
+.btn-secondary{background:#1e1a3a;border:1px solid rgba(130,100,255,.2);color:#a090d0}
+.btn-secondary:hover{background:#252040}
+/* Usage bar */
+.usage-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.usage-label{font-size:13px;color:#9080bb}
+.usage-count{font-size:13px;color:#e0d4ff;font-weight:600}
+.usage-bar{height:8px;border-radius:4px;background:#1e1a3a;overflow:hidden}
+.usage-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#7c3aed,#a855f7);transition:width .4s}
+.usage-fill.full{background:linear-gradient(90deg,#dc2626,#f87171)}
+/* Account form */
+.form-row{margin-bottom:14px}
+.form-row label{display:block;font-size:12px;color:#8070a8;margin-bottom:5px}
+.form-row input{width:100%;background:#0d0b1a;border:1px solid rgba(130,100,255,.25);border-radius:8px;padding:9px 11px;color:#e0d4ff;font-size:13px;outline:none}
+.form-row input:focus{border-color:#7c3aed}
+.form-row input[readonly]{opacity:.5;cursor:not-allowed}
+/* Flash */
+.flash{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px}
+.flash.success{background:rgba(50,200,100,.1);border:1px solid rgba(50,200,100,.25);color:#70e090}
+.flash.error{background:rgba(220,50,50,.12);border:1px solid rgba(220,50,50,.25);color:#f08080}
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#15122a;border:1px solid rgba(130,100,255,.3);border-radius:14px;padding:28px 26px;width:100%;max-width:380px}
+.modal h3{font-size:16px;margin-bottom:10px}
+.modal p{font-size:13px;color:#9080bb;margin-bottom:20px;line-height:1.6}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+/* Upgraded banner */
+.upgraded{background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(99,102,241,.15));border:1px solid rgba(168,85,247,.4);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:14px;color:#d4acff}
+</style>
+</head>
+<body>
+{% if announcement %}
+<div id="announce-bar" style="background:linear-gradient(90deg,#7c3aed 0%,#4f46e5 100%);color:#fff;text-align:center;padding:10px 48px;font-size:13px;font-weight:600;position:relative;line-height:1.4">
+  {{ announcement }}
+  <button onclick="document.getElementById('announce-bar').style.display='none'" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.8);font-size:20px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+</div>
+{% endif %}
+<nav>
+  <a href="/" class="nav-logo">🔦 Lithophane Studio</a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Generator</a>
+    <a href="/pricing" class="nav-link">Pricing</a>
+    <a href="/logout" class="nav-link">Logout</a>
+  </div>
+</nav>
+
+<div class="page">
+  <h1>My Account</h1>
+
+  {% if request.args.get('upgraded') %}
+  <div class="upgraded">🎉 Your plan has been upgraded! Features are now unlocked.</div>
+  {% endif %}
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}<div class="flash {{ cat }}">{{ msg }}</div>{% endfor %}
+  {% endwith %}
+
+  <!-- Plan -->
+  <div class="card">
+    <h2>Plan &amp; Billing</h2>
+    <div class="plan-row">
+      {% if 'pro' in tier %}
+        <span class="plan-badge pro">Pro</span>
+      {% elif 'plus' in tier %}
+        <span class="plan-badge plus">Plus</span>
+      {% else %}
+        <span class="plan-badge free">Free</span>
+      {% endif %}
+      <div class="plan-meta">
+        {% if sub %}
+          <strong>{{ sub.plan | replace('_', ' ') | title }}</strong><br>
+          Expires: {{ sub.expires_at | strftime }}
+        {% else %}
+          Free tier — 3 generations per day
+        {% endif %}
+      </div>
+    </div>
+    <div class="plan-actions">
+      {% if tier == 'free' or tier == 'anonymous' %}
+        <a href="/pricing" class="btn btn-upgrade">⚡ Upgrade Plan</a>
+      {% elif 'plus' in tier %}
+        <a href="/pricing" class="btn btn-upgrade">Upgrade to Pro</a>
+        <button class="btn btn-cancel" onclick="document.getElementById('cancel-modal').classList.add('open')">Cancel Subscription</button>
+      {% else %}
+        <span style="color:#7060a0;font-size:13px">You're on the highest plan</span>
+        <button class="btn btn-cancel" onclick="document.getElementById('cancel-modal').classList.add('open')">Cancel Subscription</button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Usage -->
+  <div class="card">
+    <h2>Usage Today</h2>
+    {% set pct = ((used_today / daily_limit * 100) | int) if daily_limit else 0 %}
+    <div class="usage-row">
+      <span class="usage-label">Generations</span>
+      <span class="usage-count">
+        {{ used_today }}{% if daily_limit %} / {{ daily_limit }}{% else %} / ∞{% endif %}
+      </span>
+    </div>
+    {% if daily_limit %}
+    <div class="usage-bar">
+      <div class="usage-fill {{ 'full' if pct >= 100 else '' }}" style="width:{{ [pct,100]|min }}%"></div>
+    </div>
+    {% if pct >= 100 %}
+    <p style="font-size:12px;color:#f08080;margin-top:8px">Daily limit reached. Resets at midnight UTC.</p>
+    {% endif %}
+    {% else %}
+    <div class="usage-bar"><div class="usage-fill" style="width:100%;background:linear-gradient(90deg,#7c3aed,#a855f7);opacity:.4"></div></div>
+    <p style="font-size:12px;color:#7060a0;margin-top:8px">Unlimited — no daily cap on Pro</p>
+    {% endif %}
+  </div>
+
+  <!-- Account details -->
+  <div class="card">
+    <h2>Account</h2>
+    <div class="form-row">
+      <label>Email</label>
+      <input type="email" value="{{ user.email }}" readonly>
+    </div>
+    <form method="POST" action="/change-password">
+      <div class="form-row">
+        <label>Current Password</label>
+        <input type="password" name="old_password" placeholder="••••••••">
+      </div>
+      <div class="form-row">
+        <label>New Password</label>
+        <input type="password" name="new_password" placeholder="Min 6 characters">
+      </div>
+      <div class="form-row">
+        <label>Confirm New Password</label>
+        <input type="password" name="confirm" placeholder="Same as above">
+      </div>
+      <button type="submit" class="btn btn-secondary" style="margin-top:4px">Update Password</button>
+    </form>
+  </div>
+</div>
+
+<!-- Support / Tickets -->
+<div class="card" id="support-section">
+  <h2>🎫 Support</h2>
+  <p style="font-size:13px;color:#7060a0;margin-bottom:16px">Have a question or issue? Send us a message and we'll get back to you.</p>
+  <div id="ticket-success" style="display:none;background:rgba(50,200,100,.1);border:1px solid rgba(50,200,100,.25);border-radius:8px;padding:10px 14px;font-size:13px;color:#70e090;margin-bottom:14px">
+    ✅ Ticket submitted! We'll reply to your email soon.
+  </div>
+  <div id="ticket-error" style="display:none;background:rgba(220,50,50,.1);border:1px solid rgba(220,50,50,.25);border-radius:8px;padding:10px 14px;font-size:13px;color:#f08080;margin-bottom:14px"></div>
+  <form id="ticket-form" onsubmit="submitTicket(event)">
+    <div class="form-row">
+      <label>Subject</label>
+      <input type="text" id="t-subject" placeholder="Briefly describe your issue" maxlength="200" required>
+    </div>
+    <div class="form-row">
+      <label>Message</label>
+      <textarea id="t-message" style="width:100%;background:#0a0812;border:1px solid rgba(130,100,255,.2);border-radius:8px;padding:10px 13px;color:#e0d4ff;font-size:13px;outline:none;resize:vertical;min-height:90px;transition:border-color .2s" placeholder="Describe your issue in detail..." maxlength="5000" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-secondary" id="ticket-submit-btn">Send Message</button>
+  </form>
+</div>
+
+<!-- Cancel confirmation modal -->
+<div class="modal-bg" id="cancel-modal">
+  <div class="modal">
+    <h3>Cancel Subscription?</h3>
+    <p>Your plan will remain active until the current billing period ends. After that you'll be moved to the Free tier.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="document.getElementById('cancel-modal').classList.remove('open')">Keep Plan</button>
+      <button class="btn btn-cancel" id="confirm-cancel-btn" onclick="confirmCancel()">Yes, Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+async function confirmCancel() {
+  const btn = document.getElementById('confirm-cancel-btn');
+  btn.disabled = true; btn.textContent = 'Cancelling…';
+  const r = await fetch('/cancel-subscription', {method:'POST'});
+  const d = await r.json();
+  if (d.status === 'cancelled') {
+    location.reload();
+  } else {
+    alert('Error: ' + (d.error || 'Unknown'));
+    btn.disabled = false; btn.textContent = 'Yes, Cancel';
+  }
+}
+
+async function submitTicket(e) {
+  e.preventDefault();
+  const btn = document.getElementById('ticket-submit-btn');
+  const errEl = document.getElementById('ticket-error');
+  const okEl  = document.getElementById('ticket-success');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const r = await fetch('/submit-ticket', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        subject: document.getElementById('t-subject').value,
+        message: document.getElementById('t-message').value,
+      })
+    });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      okEl.style.display = 'block';
+      document.getElementById('ticket-form').reset();
+    } else {
+      errEl.textContent = d.error || 'Failed to send. Please try again.';
+      errEl.style.display = 'block';
+    }
+  } catch(err) {
+    errEl.textContent = 'Network error. Please try again.';
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Send Message';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login — Lithophane Studio</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0b1a;color:#e0d4ff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.card{background:#15122a;border:1px solid rgba(130,100,255,.25);border-radius:16px;padding:36px 32px;width:100%;max-width:400px}
+.logo{text-align:center;margin-bottom:24px}
+.logo h1{font-size:22px;color:#e0d4ff;font-weight:700}
+.logo p{color:#8070bb;font-size:13px;margin-top:4px}
+.flash{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px}
+.flash.error{background:rgba(220,50,50,.15);border:1px solid rgba(220,50,50,.3);color:#f08080}
+.flash.warning{background:rgba(220,160,50,.12);border:1px solid rgba(220,160,50,.3);color:#f0c060}
+.flash.success{background:rgba(50,200,100,.12);border:1px solid rgba(50,200,100,.3);color:#70e090}
+label{display:block;font-size:12px;color:#9080bb;margin-bottom:5px;margin-top:14px}
+input[type=email],input[type=password]{width:100%;background:#0d0b1a;border:1px solid rgba(130,100,255,.3);border-radius:8px;padding:10px 12px;color:#e0d4ff;font-size:14px;outline:none;transition:border-color .2s}
+input:focus{border-color:#7c3aed}
+.btn{width:100%;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;border-radius:8px;padding:12px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;margin-top:20px;letter-spacing:.3px;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.links{text-align:center;margin-top:16px;font-size:13px;color:#7060a8}
+.links a{color:#a080ff;text-decoration:none}
+.links a:hover{text-decoration:underline}
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0}
+.divider hr{flex:1;border:none;border-top:1px solid rgba(130,100,255,.15)}
+.divider span{color:#5a5080;font-size:12px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <h1>🔦 Lithophane Studio</h1>
+    <p>Sign in to your account</p>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+  <div class="flash {{ cat }}">{{ msg }}</div>
+  {% endfor %}
+  {% endwith %}
+
+  <form method="POST" action="/login">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label>Email address</label>
+    <input type="email" name="email" value="{{ email or '' }}" required autofocus placeholder="you@example.com">
+    <label>Password</label>
+    <input type="password" name="password" required placeholder="••••••••">
+    <button type="submit" class="btn">Sign In</button>
+  </form>
+
+  <div class="links" style="margin-top:12px">
+    <a href="/forgot-password">Forgot password?</a>
+  </div>
+  <div class="divider"><hr><span>New here?</span><hr></div>
+  <div class="links">
+    <a href="/signup">Create a free account</a>
+  </div>
+</div>
+</body>
+</html>
